@@ -64,12 +64,15 @@ var DB={
   },
   onAuth:function(cb){
     if(!sb) return;
-    var first=true;
+    var lastId = user ? (user.id||user.email) : null;
     sb.auth.onAuthStateChange(function(evt,sess){
       user=(sess&&sess.user)||null;
-      /* Supabase fires INITIAL_SESSION on load. Acting on it causes a reload loop. */
-      if(first){ first=false; if(evt==='INITIAL_SESSION') return; }
-      if(evt==='SIGNED_IN' || evt==='SIGNED_OUT') cb(evt,user);
+      var id = user ? (user.id||user.email) : null;
+      /* INITIAL_SESSION fires on every load, and SIGNED_IN repeats on token
+         refresh and tab focus. Only report a genuine identity change. */
+      if(id===lastId) return;
+      lastId=id;
+      cb(id?'SIGNED_IN':'SIGNED_OUT', user);
     });
   },
 
