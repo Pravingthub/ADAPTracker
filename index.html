@@ -534,7 +534,13 @@ function load(cb){
     apply(null); renderAcct(); cb();
     if(DB.mode==='cloud') toast(String(err.message||err));
   });
-  DB.onAuth(function(){ location.reload(); });
+  var reloading=false;
+  DB.onAuth(function(evt){
+    if(reloading) return;
+    reloading=true;
+    toast(evt==='SIGNED_IN'?'Signed in':'Signed out');
+    setTimeout(function(){ location.replace(location.pathname); },600);
+  });
 }
 
 function sev(actual,expected){
