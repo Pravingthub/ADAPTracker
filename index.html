@@ -93,7 +93,15 @@ main{min-width:0;overflow-x:clip}
 .alert .ex{color:var(--neg);font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;flex:none;padding-top:3px}
 
 /* ── tiles ── */
-.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin:0 0 24px}
+.kpis{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr 1fr;gap:14px;margin:0 0 24px}
+.kpi.hero{background:linear-gradient(180deg,rgba(217,164,65,.07),transparent 70%),var(--card);border-color:rgba(217,164,65,.3)}
+.kpi.hero .v{font-size:36px}
+.kpi.hero.moving{background:linear-gradient(180deg,rgba(111,169,122,.09),transparent 70%),var(--card);border-color:rgba(111,169,122,.35)}
+.kpi.hero.moving .v{color:var(--pos)}
+.kpi .delta{font-family:var(--mono);font-size:11px;font-weight:600;margin-top:9px;color:var(--pos)}
+.kpi .delta.flat{color:var(--mut2);font-weight:400}
+.kpi.quiet{opacity:.7}
+.kpi.quiet .v{font-size:20px;color:var(--ink2)}
 @media(max-width:1180px){.kpis{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:700px){.kpis{grid-template-columns:1fr 1fr}}
 .kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px 19px}
@@ -608,9 +616,9 @@ function renderTop(){
   var t=totals(), wk=state.entries.length?weekNo():0;
   var exp=wk?TARGET*Math.min(1,wk/WEEKS):0, v=t.R-exp;
   el('today').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})+
-    (wk?'  ·  Week '+wk+' of '+WEEKS:'  ·  Not started');
+    (wk?'  ·  Week '+wk+' of '+WEEKS:'  ·  Ready to start');
   var sv=sev(t.R,exp);
-  el('statusPill').innerHTML= !wk ? '<span class="pill idle">NOT STARTED</span>'
+  el('statusPill').innerHTML= !wk ? '<span class="pill idle">WEEK 1 AHEAD</span>'
     : '<span class="pill '+sv.k+'">'+sv.l+'</span>';
   el('topFig').innerHTML='<b>'+money(t.R)+'</b> <span>of '+money(TARGET)+' · '+money(Math.max(0,TARGET-t.R))+' left</span>';
 }
@@ -629,12 +637,41 @@ function renderKpis(){
   var expP=wk?PIPE_TARGET*Math.min(1,wk/WEEKS):0, svP=sev(t.P,expP);
   var cov=need>0?(t.P/need):0, svC=cov>=3?{k:'good',l:'COVERAGE OK'}:(cov>=2?{k:'slip',l:'COVER '+cov.toFixed(1)+'× · WANT 3×'}:{k:'risk',l:'COVER '+cov.toFixed(1)+'× · WANT 3×'});
   var msSv=done===state.ms.length?['good','ALL DONE']:null;
-  el('kpis').innerHTML=
-   kpi('Recovered',money(t.R),(t.R/TARGET*100).toFixed(0)+'% of '+money(TARGET),IC.money,'a',true,t.R/TARGET*100,'money',wk?[svR.k,svR.l]:null)+
-   kpi('Remaining',money(need),need>0?money(Math.round(need/wl))+' a week for '+wl+' weeks':'target met',IC.gap,'',true,100-t.R/TARGET*100,svR.k,null)+
-   kpi('Pipeline built',money(t.P),(t.P/PIPE_TARGET*100).toFixed(0)+'% of '+money(PIPE_TARGET),IC.pipe,'t',false,t.P/PIPE_TARGET*100,'pipe',wk?[svP.k,svP.l]:null)+
-   kpi('Coverage',(need>0?cov.toFixed(1)+'×':'—'),'pipeline against what is left',IC.gap,'t',false,Math.min(100,cov/3*100),svC.k,wk?[svC.k,svC.l]:null)+
-   kpi('Milestones',done+' / '+state.ms.length,done===state.ms.length?'all done':'ticked off',IC.flag,'',false,done/state.ms.length*100,'good',msSv);
+  /* what moved most recently, so the hero shows momentum rather than a balance */
+  var srt=state.entries.slice().sort(function(a,b){return a.week<b.week?-1:1;});
+  var lastWk=0;
+  if(srt.length){ var L=srt[srt.length-1]; MOTIONS.forEach(function(m){ var c=L.m[m.id]; if(c) lastWk+=(c.rev||0); }); }
+  var moving = t.R>0;
+  var heroDelta = !n ? '<div class="delta flat">Log your first week to start the clock</div>'
+    : (lastWk>0 ? '<div class="delta">+'+money(lastWk)+' last week</div>'
+               : '<div class="delta flat">nothing closed last week</div>');
+
+  var rows='';
+  rows += '<div class="kpi hero'+(moving?' moving':'')+'">'+
+    '<div class="k">Recovered</div>'+
+    '<div class="v'+(moving?'':' money')+'">'+money(t.R)+'</div>'+
+    '<div class="trk"><i class="'+(moving?'good':'money')+'" style="width:'+Math.max(0,Math.min(100,t.R/TARGET*100))+'%"></i></div>'+
+    '<div class="d">'+(t.R>0?(t.R/TARGET*100).toFixed(0)+'% of '+money(TARGET)+' banked':'of '+money(TARGET))+'</div>'+
+    heroDelta+'</div>';
+
+  rows += kpi('Still to find',money(need),
+    !n ? money(Math.round(TARGET/WEEKS))+' a week over '+WEEKS+' weeks'
+       : money(Math.round(need/wl))+' a week for '+wl+' more',
+    IC.gap,'',false,0,'',null).replace('<div class="kpi">','<div class="kpi quiet">');
+
+  rows += kpi('Pipeline built',money(t.P),
+    t.P>0 ? (t.P/PIPE_TARGET*100).toFixed(0)+'% of '+money(PIPE_TARGET) : 'target '+money(PIPE_TARGET),
+    IC.pipe,'t',false,t.P/PIPE_TARGET*100,'pipe',wk&&t.P>0?[svP.k,svP.l]:null);
+
+  rows += kpi('Coverage',(t.P>0&&need>0?cov.toFixed(1)+'×':'—'),
+    t.P>0?'pipeline against what is left':'builds as pipeline lands',
+    IC.gap,'t',false,Math.min(100,cov/3*100),svC.k,(wk&&t.P>0)?[svC.k,svC.l]:null);
+
+  rows += kpi('Milestones',done+' / '+state.ms.length,
+    done===state.ms.length?'all seven landed':(done>0?'landed so far':'seven to land'),
+    IC.flag,'',false,done/state.ms.length*100,'good',msSv);
+
+  el('kpis').innerHTML=rows;
 }
 
 /* ───── dashboard ───── */
