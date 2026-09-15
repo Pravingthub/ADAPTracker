@@ -7,7 +7,6 @@
 <meta name="theme-color" content="#111518">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="ADAP">
-<link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="favicon.png" sizes="64x64" type="image/png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -1117,8 +1116,15 @@ function renderAcct(){
 
 function renderAll(){ renderAcct(); renderTop(); renderKpis(); renderDash(); renderHabits(); renderMs(); renderLog(); renderMotions(); renderChart(); }
 
-if('serviceWorker' in navigator && location.protocol!=='file:'){
-  window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); });
+/* No service worker. Any previously installed one is removed on load — a stale
+   worker can serve old copies of config.js and db.js and mask every update. */
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.getRegistrations().then(function(rs){
+    rs.forEach(function(r){ r.unregister(); });
+  }).catch(function(){});
+  if(window.caches) caches.keys().then(function(ks){
+    ks.forEach(function(k){ if(/adap/i.test(k)) caches.delete(k); });
+  }).catch(function(){});
 }
 
 load(function(){
