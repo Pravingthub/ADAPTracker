@@ -75,9 +75,15 @@ var DB={
 
   load:function(){
     if(DB.mode!=='cloud'){ return Promise.resolve(localRead()); }
-    return sb.from('workspaces').select('id,name,target,weeks').limit(1).single()
+    return sb.from('workspaces').select('id,name,target,weeks').limit(1).maybeSingle()
       .then(function(r){
-        if(r.error||!r.data) throw r.error||new Error('No workspace — run seed.sql');
+        if(r.error || !r.data){
+          var msg=String((r.error&&r.error.message)||'');
+          if(/coerce|0 rows|multiple/i.test(msg) || !r.data){
+            throw new Error('Signed in, but no workspace yet — run seed.sql in Supabase');
+          }
+          throw r.error;
+        }
         ws=r.data.id;
         return Promise.all([
           sb.from('milestones').select('*').eq('workspace_id',ws).order('ord'),
