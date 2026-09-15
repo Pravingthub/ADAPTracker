@@ -8,7 +8,13 @@ var KEY='adap-recovery-v5';
 var cfg=(window.ADAP_CONFIG||{});
 var sb=null, ws=null, user=null;
 
-function hasCloud(){ return !!(cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY && window.supabase); }
+var reason='';
+function hasCloud(){
+  if(!window.supabase){ reason='Supabase library did not load — check the network or an ad blocker'; return false; }
+  if(!window.ADAP_CONFIG){ reason='config.js did not load — is it uploaded?'; return false; }
+  if(!cfg.SUPABASE_URL || !cfg.SUPABASE_ANON_KEY){ reason='config.js has no URL or key in it'; return false; }
+  reason=''; return true;
+}
 
 /* ── local fallback ───────────────────────────────────────────────── */
 var mem=null;
@@ -35,16 +41,17 @@ function rowToWeek(r){
 /* ── public API ───────────────────────────────────────────────────── */
 var DB={
   mode:'local',
+  reason:function(){ return reason; },
   user:function(){ return user; },
 
   init:function(){
-    if(!hasCloud()) return Promise.resolve('local');
+    if(!hasCloud()){ DB.mode='local'; return Promise.resolve('local'); }
     sb=window.supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY);
     return sb.auth.getSession().then(function(r){
       user=(r.data.session&&r.data.session.user)||null;
       DB.mode = user ? 'cloud' : 'signed-out';
       return DB.mode;
-    }).catch(function(){ DB.mode='local'; return 'local'; });
+    }).catch(function(e){ reason=String(e.message||e); DB.mode='local'; return 'local'; });
   },
 
   signIn:function(email){
@@ -55,7 +62,16 @@ var DB={
     if(!sb) return Promise.resolve();
     return sb.auth.signOut().then(function(){ user=null; DB.mode='signed-out'; });
   },
-  onAuth:function(cb){ if(sb) sb.auth.onAuthStateChange(function(_e,s){ user=(s&&s.user)||null; cb(user); }); },
+  onAuth:function(cb){
+    if(!sb) return;
+    var first=true;
+    sb.auth.onAuthStateChange(function(evt,sess){
+      user=(sess&&sess.user)||null;
+      /* Supabase fires INITIAL_SESSION on load. Acting on it causes a reload loop. */
+      if(first){ first=false; if(evt==='INITIAL_SESSION') return; }
+      if(evt==='SIGNED_IN' || evt==='SIGNED_OUT') cb(evt,user);
+    });
+  },
 
   load:function(){
     if(DB.mode!=='cloud'){ return Promise.resolve(localRead()); }
