@@ -329,6 +329,7 @@ svg.chart{width:100%;height:auto;display:block}
   </nav>
   <div class="sidefoot">
     <div id="acct" class="acct"></div>
+    <button id="btnFlush">CLEAR CACHE &amp; RELOAD</button>
     <button id="btnExport">EXPORT JSON</button>
     <button id="btnImport">IMPORT</button>
     <button class="danger" id="btnReset">RESET</button>
@@ -532,14 +533,24 @@ function load(cb){
     });
   }).catch(function(err){
     apply(null); renderAcct(); cb();
-    if(DB.mode==='cloud') toast(String(err.message||err));
+    if(DB.mode==='cloud' && !window.__adapWarned){
+      window.__adapWarned=true;
+      toast(String(err.message||err));
+    }
   });
-  var reloading=false;
+  var authBusy=false;
   DB.onAuth(function(evt){
-    if(reloading) return;
-    reloading=true;
-    toast(evt==='SIGNED_IN'?'Signed in':'Signed out');
-    setTimeout(function(){ location.replace(location.pathname); },600);
+    if(authBusy) return;
+    authBusy=true;
+    DB.init()
+      .then(function(){ return DB.load(); })
+      .then(function(d){ apply(d?JSON.stringify(d):null); })
+      .catch(function(){ apply(null); })
+      .then(function(){
+        renderEntryRows(null); renderAll();
+        toast(evt==='SIGNED_IN'?'Signed in':'Signed out');
+        authBusy=false;
+      });
   });
 }
 
@@ -1028,6 +1039,21 @@ function openPane(id){
 [].forEach.call(document.querySelectorAll('#menu button'),function(b){
   b.onclick=function(){ openPane(b.dataset.p); };
 });
+el('btnFlush').onclick=function(){
+  var jobs=[];
+  if('serviceWorker' in navigator){
+    jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){
+      return Promise.all(rs.map(function(r){ return r.unregister(); }));
+    }));
+  }
+  if(window.caches) jobs.push(caches.keys().then(function(ks){
+    return Promise.all(ks.map(function(k){ return caches.delete(k); }));
+  }));
+  Promise.all(jobs).catch(function(){}).then(function(){
+    location.href=location.pathname+'?fresh='+Date.now();
+  });
+};
+
 el('btnExport').onclick=function(){
   var a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:'application/json'}));
@@ -1062,7 +1088,7 @@ function renderAcct(){
   if(m==='cloud'){
     box.innerHTML='<b class="cloud">SYNCED</b>'+esc(u.email)+
       '<button id="btnOut">SIGN OUT</button>';
-    el('btnOut').onclick=function(){ DB.signOut().then(function(){ location.reload(); }); };
+    el('btnOut').onclick=function(){ DB.signOut().then(function(){ window.__adapWarned=false; }); };
   } else if(m==='signed-out'){
     box.innerHTML='<b class="off">NOT SIGNED IN</b>Sign in to sync across devices.'+
       '<input type="email" id="inEmail" placeholder="you@company.com">'+
