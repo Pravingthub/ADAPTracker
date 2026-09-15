@@ -8,11 +8,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="ADAP">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="assets/favicon.png" sizes="64x64" type="image/png">
-<link rel="apple-touch-icon" href="assets/icon-192.png">
+<link rel="icon" href="favicon.png" sizes="64x64" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="config.js"></script>
-<script src="db.js"></script>
+<script src="config.js?v=2"></script>
+<script src="db.js?v=2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -49,10 +49,10 @@ nav.menu button:hover{background:var(--panel);color:var(--fg)}
 nav.menu button.on{background:var(--panel2);color:var(--fg);font-weight:600;box-shadow:inset 2px 0 0 var(--fg2)}
 nav.menu button.on svg{color:var(--fg)}
 nav.menu svg{width:17px;height:17px;flex:none;color:var(--dim)}
-.acct{font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.5;padding:0 2px 10px;word-break:break-all}
-.acct b{color:var(--fg2);font-weight:600;display:block}
+.acct{font-family:var(--mono);font-size:10px;color:var(--dim);line-height:1.55;padding:0 2px 12px;overflow-wrap:anywhere}
+.acct b{color:var(--fg2);font-weight:600;display:block;margin-bottom:4px;letter-spacing:.06em}
 .acct .cloud{color:var(--s-good)} .acct .off{color:var(--s-slip)}
-.acct input{margin-top:7px;font-size:11px;padding:6px 8px}
+.acct input{display:block;width:100%;margin-top:9px;font-size:11px;padding:7px 8px}
 .acct button{width:100%;margin-top:6px;background:var(--panel);border:1px solid var(--line);color:var(--fg2);
   padding:7px 10px;border-radius:6px;cursor:pointer;font-family:var(--mono);font-size:10.5px;letter-spacing:.05em}
 .acct button:hover{background:var(--line2);color:var(--fg)}
@@ -352,7 +352,7 @@ svg.chart{width:100%;height:auto;display:block}
         <div class="kpis" id="kpis"></div>
         <div class="card">
           <h2>Milestone completion</h2>
-          <p class="sub">Thirteen commitments across four phases. Each one is binary — it has either happened or it has not.</p>
+          <p class="sub">Seven setup actions across three phases. Everything after day 30 is measured, not ticked.</p>
           <div class="rings" id="dashRings"></div>
         </div>
         <div class="card">
@@ -1069,7 +1069,17 @@ function renderAcct(){
       });
     };
   } else {
-    box.innerHTML='<b class="off">THIS DEVICE ONLY</b>No Supabase configured. Export regularly.';
+    var why=(DB.reason&&DB.reason())||'No Supabase configured.';
+    box.innerHTML='<b class="off">THIS DEVICE ONLY</b>'+esc(why)+'<button id="btnRetry">RETRY CONNECTION</button>';
+    el('btnRetry').onclick=function(){
+      if('serviceWorker' in navigator){
+        navigator.serviceWorker.getRegistrations().then(function(rs){
+          return Promise.all(rs.map(function(r){ return r.unregister(); }));
+        }).then(function(){ return caches.keys(); })
+          .then(function(ks){ return Promise.all(ks.map(function(k){ return caches.delete(k); })); })
+          .then(function(){ location.reload(true); });
+      } else location.reload(true);
+    };
   }
 }
 
