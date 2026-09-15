@@ -537,17 +537,25 @@ function load(cb){
       toast(String(err.message||err));
     }
   });
+  /* Supabase re-fires SIGNED_IN on token refresh and on tab focus. Only react
+     when the signed-in identity actually changes. */
+  var lastUser=(DB.user&&DB.user()) ? (DB.user().id||DB.user().email) : null;
   var authBusy=false;
   DB.onAuth(function(evt){
+    var u=(DB.user&&DB.user())||null;
+    var id=u?(u.id||u.email):null;
+    if(id===lastUser) return;
     if(authBusy) return;
     authBusy=true;
+    var wasNull=(lastUser===null);
+    lastUser=id;
     DB.init()
       .then(function(){ return DB.load(); })
       .then(function(d){ apply(d?JSON.stringify(d):null); })
       .catch(function(){ apply(null); })
       .then(function(){
         renderEntryRows(null); renderAll();
-        toast(evt==='SIGNED_IN'?'Signed in':'Signed out');
+        toast(id ? (wasNull?'Signed in':'Account changed') : 'Signed out');
         authBusy=false;
       });
   });
