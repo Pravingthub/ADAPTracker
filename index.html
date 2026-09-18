@@ -155,11 +155,12 @@ main{min-width:0;overflow-x:clip}
 .mscard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:transparent}
 .mscard:hover{border-color:var(--line2)}
 
-/* settled — barely there */
-.mscard.st-done{opacity:.4;border-color:var(--line)}
+/* settled — reads as landed, not discarded */
+.mscard.st-done{background:rgba(111,169,122,.055);border-color:rgba(111,169,122,.32)}
 .mscard.st-done::before{background:var(--pos)}
 .mscard.st-done .msgrid{display:none}
-.mscard.st-done:hover{opacity:.7}
+.mscard.st-done .outs{border-top-color:rgba(111,169,122,.22)}
+.mscard.st-done .outf input{border-color:rgba(111,169,122,.25)}
 
 /* live — lifted and gold */
 .mscard.st-doing{background:var(--card2);border-color:rgba(217,164,65,.35)}
@@ -178,12 +179,15 @@ main{min-width:0;overflow-x:clip}
 .mscard.no-dri .msgrid input[data-dri]{border-color:rgba(201,160,87,.45)}
 .mshead{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
 .mshead .txt{flex:1 1 240px;min-width:0;text-align:left}
+.tickmark{display:inline-grid;place-items:center;width:19px;height:19px;border-radius:6px;background:var(--pos);
+  color:#0E1114;font-size:11px;font-weight:700;margin-right:10px;vertical-align:-3px}
 .mshead .txt{font-size:14.5px;font-weight:500;line-height:1.4;letter-spacing:-.014em;color:var(--mut);order:-1}
 .mshead .txt .hl{font-style:normal;font-weight:700;color:var(--ink)}
 .mshead .txt .hl.num{color:var(--gold);font-family:var(--mono);font-size:.94em}
-.mscard.st-done .mshead .txt .hl{color:var(--mut2)}
+
 .mscard.st-blocked .mshead .txt,.mscard.is-late .mshead .txt{color:#fff}
-.mscard.st-done .mshead .txt{color:var(--mut2);text-decoration:line-through}
+.mscard.st-done .mshead .txt{color:var(--ink2)}
+.mscard.st-done .mshead .txt .hl{color:var(--ink)}
 .mscard.st-done .mshead .txt{color:var(--mut)}
 .flag{font-family:var(--mono);font-size:9.5px;font-weight:600;padding:4px 8px;border-radius:5px;white-space:nowrap;border:1px solid transparent;flex:0 0 auto;order:3;align-self:flex-start}
 .flag.late{background:var(--neg);color:#2A100C;border-color:var(--neg)}
@@ -195,7 +199,7 @@ select.st{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing
 select.st:focus{outline:none;border-color:var(--gold)}
 select.st.v-doing{color:var(--gold);border-color:rgba(217,164,65,.45)}
 select.st.v-blocked{color:var(--neg);border-color:rgba(199,108,94,.45)}
-select.st.v-done{color:var(--pos);border-color:rgba(111,169,122,.45)}
+select.st.v-done{color:var(--pos);border-color:rgba(111,169,122,.5);background:rgba(111,169,122,.1)}
 .msgrid{display:grid;grid-template-columns:86px minmax(0,1fr);gap:10px 14px;margin-top:14px;padding-top:13px;
   border-top:1px solid var(--line);align-items:start}
 .msgrid > label{margin:0;font-size:8.5px;line-height:1.3;padding-top:9px;align-self:start;text-align:left}
@@ -1213,7 +1217,7 @@ function renderMs(){
     var opts=ST.map(function(x){ return '<option value="'+x[0]+'"'+(m.status===x[0]?' selected':'')+'>'+x[1]+'</option>'; }).join('');
     h+='<div class="mscard st-'+m.status+(lt?' is-late':'')+(soon?' is-soon':'')+(noDri?' no-dri':'')+'">'+
       '<div class="mshead"><select class="st v-'+m.status+'" data-st2="'+i+'">'+opts+'</select>'+
-      '<div class="txt">'+hl(m.text)+'</div>'+flag+'</div>'+
+      '<div class="txt">'+(m.status==='done'?'<span class="tickmark">✓</span>':'')+hl(m.text)+'</div>'+flag+'</div>'+
       (function(){
         var sp=starterFor(m.ord||i+1);
         if(!sp) return '';
@@ -1593,7 +1597,7 @@ function renderAcct(){
   }
 }
 
-var BUILD='2026-09-18 11:57 UTC';
+var BUILD='2026-09-18 11:59 UTC';
 function kmRow(label,value,sub,cls){
   return '<div class="kmr"><div class="kml">'+label+'</div>'+
     '<div class="kmv '+(cls||'')+'">'+value+'</div>'+
