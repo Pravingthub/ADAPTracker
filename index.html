@@ -1470,10 +1470,13 @@ function renderChart(){
     '<text x="'+L+'" y="'+(T-12)+'" font-family="IBM Plex Mono,monospace" font-size="10" fill="'+COL+'">'+sv.l+' · '+money(Math.max(0,expNow-cum))+' BEHIND THE LINE</text>'+
     '<text x="'+(W-R)+'" y="'+(T-12)+'" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="10" fill="#6D7B83">DOTTED = PACE · DASHED = AT CURRENT RATE</text>'+
     '</svg>'+
-    '<p class="note" style="margin-top:12px;font-size:12px;color:var(--dim)">At '+money(Math.round(rate))+
-      ' a week you land at <b style="color:var(--amber)">'+money(land)+'</b>'+
-      (land<TARGET?' — <b style="color:'+COL+'">'+money(TARGET-land)+' short</b>. You need '+money(Math.round((TARGET-cum)/Math.max(1,WEEKS-n)))+' a week from here.'
-                  :' — clear of the target.')+'</p>';
+    '<p class="note" style="margin-top:12px;font-size:12.5px;color:var(--mut)">'+
+      (land<TARGET
+        ? '<b style="color:var(--gold)">'+money(Math.round((TARGET-cum)/Math.max(1,WEEKS-n)))+' a week</b> from here reaches '+
+          money(TARGET)+'. At the current '+money(Math.round(rate))+' the year ends on '+
+          '<b style="color:'+COL+'">'+money(land)+'</b>, '+money(TARGET-land)+' short.'
+        : 'At '+money(Math.round(rate))+' a week the year ends on <b style="color:var(--pos)">'+money(land)+'</b>, clear of '+money(TARGET)+'.')+
+    '</p>';
 
   // weekly bars against the weekly target
   var BW=900,BH=210,bl=82,bph=BH-56,need=TARGET/WEEKS,mx=need;
@@ -1590,7 +1593,7 @@ function renderAcct(){
   }
 }
 
-var BUILD='2026-09-18 11:08 UTC';
+var BUILD='2026-09-18 11:57 UTC';
 function kmRow(label,value,sub,cls){
   return '<div class="kmr"><div class="kml">'+label+'</div>'+
     '<div class="kmv '+(cls||'')+'">'+value+'</div>'+
