@@ -348,6 +348,8 @@ svg.chart{width:100%;height:auto;display:block}
 .h2-bar i.c{background:var(--teal)} .h2-bar i.d{background:rgba(107,168,164,.34)}
 .h2-lg{display:flex;flex-direction:column;gap:7px;font-size:11.5px;color:var(--mut)}
 .h2-lg span{display:flex;align-items:center;gap:9px}
+.h2-lg span.muted{opacity:.5}
+.h2-lg span.muted b{color:var(--mut)}
 .h2-lg i{width:9px;height:9px;border-radius:2px;flex:none}
 .h2-lg i.a{background:var(--gold)} .h2-lg i.b{background:rgba(217,164,65,.34)}
 .h2-lg i.c{background:var(--teal)} .h2-lg i.d{background:rgba(107,168,164,.34)}
@@ -356,6 +358,8 @@ svg.chart{width:100%;height:auto;display:block}
 .h2-foot{padding:13px 24px;border-top:1px solid var(--line);background:var(--card);
   font-size:11.5px;color:var(--mut)}
 .h2-foot b{color:var(--ink);font-family:var(--mono);font-size:12.5px;font-weight:600;letter-spacing:-.02em}
+.h2-gap{float:right;font-family:var(--mono);font-size:11.5px;color:var(--neg);font-weight:600}
+.h2-dup{clear:both;padding-top:9px;margin-top:9px;border-top:1px solid var(--line);font-size:11px;color:var(--mut2);line-height:1.5}
 @media(max-width:860px){.h2-split{grid-template-columns:1fr}.h2-block + .h2-block{border-left:0;border-top:1px solid var(--line)}}
 
 /* ───── milestone outputs ───── */
@@ -692,8 +696,11 @@ function msRevenueSplit(){
     });
   });
   var sameq=outVal(5,'sameq')||0, other=outVal(5,'other')||0;
+  var scrub=outVal(1,'rev')||0;
   return {backed:backed, forecast:forecast, total:backed+forecast,
-          sameq:sameq, other:other, run:sameq+other};
+          sameq:sameq, other:other, run:sameq+other,
+          /* the carried half of Sep–Dec is the same deals the scrub already claims */
+          unique:(backed+forecast)+sameq, dup:Math.min(other,backed+forecast)?other:0, scrub:scrub};
 }
 function msRevenueExpected(motionId){
   var total=0;
@@ -1097,7 +1104,7 @@ function isLate(m,today){ return m.status!=='done' && m.due && Math.round((new D
 function renderMsHero(){
   var box=el('msHero'); if(!box) return;
   var r=msRevenueSplit();
-  var idTotal=r.total+r.run;
+  var idTotal=r.total+r.sameq;   /* carried is excluded — see msRevenueSplit */
   function seg(v,tot){ return tot? Math.max(0,Math.min(100,v/tot*100)) : 0; }
 
   box.innerHTML=
@@ -1132,14 +1139,18 @@ function renderMsHero(){
           '<i class="d" style="width:'+seg(r.other,TARGET_RUN)+'%"></i></div>'+
         '<div class="h2-lg">'+
           '<span><i class="c"></i><b>'+money(r.sameq)+'</b> same-quarter conversion</span>'+
-          '<span><i class="d"></i><b>'+money(r.other)+'</b> other</span>'+
+          '<span class="muted"><i class="d"></i><b>'+money(r.other)+'</b> other · carried, counted in the deficit</span>'+
         '</div>'+
         '<div class="h2-of">of '+money(TARGET_RUN)+'</div>'+
       '</div>'+
     '</div>'+
 
     '<div class="h2-foot">Identified so far <b>'+money(idTotal)+'</b> of '+money(TARGET)+
-      ' &nbsp;·&nbsp; '+Math.round(idTotal/TARGET*100)+'% has a named source</div>'+
+      ' &nbsp;·&nbsp; '+Math.round(idTotal/TARGET*100)+'% has a named source'+
+      '<span class="h2-gap">'+money(Math.max(0,TARGET-idTotal))+' still unsourced</span>'+
+      (r.other? '<div class="h2-dup">Carried pipeline of '+money(r.other)+
+        ' is left out — those are the same deals the scrub counts as '+money(r.scrub)+'.</div>':'')+
+    '</div>'+
   '</div>';
 
 }
@@ -1579,7 +1590,7 @@ function renderAcct(){
   }
 }
 
-var BUILD='2026-09-18 11:02 UTC';
+var BUILD='2026-09-18 11:08 UTC';
 function kmRow(label,value,sub,cls){
   return '<div class="kmr"><div class="kml">'+label+'</div>'+
     '<div class="kmv '+(cls||'')+'">'+value+'</div>'+
