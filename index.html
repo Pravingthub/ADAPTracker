@@ -53,6 +53,7 @@ nav.menu button.on svg{color:var(--gold)}
 .acct button{display:block;width:100%;margin-top:7px;background:var(--card);border:1px solid var(--line);
   color:var(--ink2);padding:7px 10px;border-radius:7px;font:inherit;font-size:11.5px;font-weight:500;cursor:pointer;text-align:left}
 .acct button:hover{background:var(--card2);color:var(--ink)}
+.build{padding:0 20px 12px;font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:#3C424C}
 .sidefoot{margin-top:auto;padding:18px 20px 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:7px}
 .sidefoot button{background:var(--card);border:1px solid var(--line);color:var(--ink2);padding:8px 11px;
   border-radius:7px;font:inherit;font-size:12px;font-weight:500;cursor:pointer;text-align:left}
@@ -274,7 +275,7 @@ label{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.12em;c
 .pane{display:none} .pane.on{display:block}
 
 /* ── log ── */
-.entryrow{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:12px;align-items:end;padding:12px 0;border-bottom:1px solid var(--line)}
+.entryrow{display:grid;grid-template-columns:1.4fr 1fr 1fr .7fr .7fr;gap:10px;align-items:end;padding:12px 0;border-bottom:1px solid var(--line)}
 .entryrow .nm{font-size:13px}
 .entryrow .nm b{display:block;color:var(--ink);font-weight:600}
 .entryrow .nm span{font-family:var(--mono);font-size:10px;color:var(--mut2)}
@@ -297,6 +298,7 @@ label{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.12em;c
   font-size:10.5px;letter-spacing:.06em;padding:7px 13px;border-radius:6px;transition:.14s}
 .del:hover{background:var(--line2);color:var(--ink)}
 .del.rm:hover{background:var(--neg);border-color:var(--neg);color:#fff}
+@media(max-width:1100px){.entryrow{grid-template-columns:1fr 1fr 1fr}}
 @media(max-width:760px){.entryrow{grid-template-columns:1fr}}
 
 svg.chart{width:100%;height:auto;display:block}
@@ -304,6 +306,27 @@ svg.chart{width:100%;height:auto;display:block}
   font-family:var(--mono);font-size:11.5px;font-weight:600;padding:11px 19px;border-radius:7px;
   transition:transform .3s cubic-bezier(.2,.8,.2,1);z-index:99}
 .toast.on{transform:translateX(-50%) translateY(0)}
+/* ───── KPI board ───── */
+.kgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(248px,1fr));gap:12px}
+.kc{background:var(--card2);border:1px solid var(--line);border-radius:9px;padding:15px 17px;position:relative;overflow:hidden}
+.kc::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--line2)}
+.kc.good::before{background:var(--pos)} .kc.slip::before,.kc.behind::before{background:var(--warn)}
+.kc.risk::before{background:var(--neg)} .kc.idle::before{background:var(--line2)}
+.kc .kn{font-size:13px;font-weight:600;color:var(--ink);line-height:1.3;letter-spacing:-.012em}
+.kc .kw{font-family:var(--mono);font-size:9px;letter-spacing:.11em;color:var(--mut2);text-transform:uppercase;margin-top:4px}
+.kc .kv{font-family:var(--mono);font-size:23px;font-weight:600;letter-spacing:-.035em;line-height:1;margin-top:13px;color:var(--ink)}
+.kc .kv.na{font-size:15px;color:var(--mut2);font-weight:400}
+.kc .krow{display:flex;justify-content:space-between;gap:10px;margin-top:11px;padding-top:10px;border-top:1px solid var(--line);
+  font-family:var(--mono);font-size:10px;color:var(--mut2)}
+.kc .krow b{display:block;color:var(--ink2);font-weight:600;font-size:11.5px;margin-top:3px}
+.kc .kst{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.07em;margin-top:10px}
+.kst.good{color:var(--pos)} .kst.slip,.kst.behind{color:var(--warn)} .kst.risk{color:var(--neg)} .kst.idle{color:var(--mut2)}
+.kc .ktrk{height:3px;background:var(--line2);border-radius:2px;overflow:hidden;margin-top:11px}
+.kc .ktrk i{display:block;height:3px;border-radius:2px}
+.kc.good .ktrk i{background:var(--pos)} .kc.slip .ktrk i,.kc.behind .ktrk i{background:var(--warn)}
+.kc.risk .ktrk i{background:var(--neg)} .kc.idle .ktrk i{background:var(--line2)}
+.kc .note-na{font-size:11px;color:var(--mut2);margin-top:9px;line-height:1.45}
+
 </style>
 </head>
 <body>
@@ -319,10 +342,12 @@ svg.chart{width:100%;height:auto;display:block}
     <button data-p="dash" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Dashboard</button>
     <button data-p="milestones"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Milestones</button>
     <button data-p="log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Log a week</button>
+    <button data-p="kpi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>KPIs</button>
     <button data-p="motions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="20" x2="4" y2="12"/><line x1="10" y1="20" x2="10" y2="4"/><line x1="16" y1="20" x2="16" y2="9"/><line x1="22" y1="20" x2="22" y2="15"/></svg>Motions</button>
     <button data-p="chart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,17 9,11 13,15 21,6"/><polyline points="15,6 21,6 21,12"/></svg>Progress</button>
   </nav>
-  <div class="sidefoot">
+  <div class="build" id="build"></div>
+    <div class="sidefoot">
     <div id="acct" class="acct"></div>
     <button id="btnFlush">CLEAR CACHE &amp; RELOAD</button>
     <button id="btnExport">EXPORT JSON</button>
@@ -383,7 +408,8 @@ svg.chart{width:100%;height:auto;display:block}
           <p class="sub">Revenue closed and qualified pipeline added, per motion. Leave a field blank for zero.</p>
           <div class="frm">
             <div><label>Week ending</label><input type="date" id="wkDate" min="2020-01-01" max="2100-12-31"></div>
-            <div style="grid-column:span 2"><label>Note</label><input type="text" id="wkNote" placeholder="What moved, what is stuck"></div>
+            <div><label>Named accounts worked</label><input type="number" min="0" id="wkAcct" placeholder="optional"></div>
+            <div><label>Note</label><input type="text" id="wkNote" placeholder="What moved, what is stuck"></div>
           </div>
           <div id="entryRows"></div>
           <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line)">
@@ -400,6 +426,25 @@ svg.chart{width:100%;height:auto;display:block}
           <h2>Logged weeks</h2>
           <p class="sub">Most recent first. EDIT loads a week back into the form.</p>
           <div id="logList"></div>
+        </div>
+      </section>
+
+      <!-- KPIs -->
+      <section class="pane" id="p-kpi">
+        <div class="card">
+          <h2>Tier 1 · Outcome</h2>
+          <p class="sub">What leadership judges. Reviewed monthly — lags by design.</p>
+          <div class="kgrid" id="kT1"></div>
+        </div>
+        <div class="card">
+          <h2>Tier 2 · Leading indicators</h2>
+          <p class="sub">These move four to six weeks before revenue does. Baselines are Jan–Aug actuals.</p>
+          <div class="kgrid" id="kT2"></div>
+        </div>
+        <div class="card">
+          <h2>Tier 3 · Activity</h2>
+          <p class="sub">What the teams control directly. If Tier 2 slips, the cause is here.</p>
+          <div class="kgrid" id="kT3"></div>
         </div>
       </section>
 
@@ -475,6 +520,15 @@ var HABITS=[
  {id:4,name:'Support flags routed',hint:'Every flag reached the state owner'},
  {id:5,name:'Organic leads answered inside 48 hours',hint:'Nothing lost to silence'}
 ];
+
+/* Jan–Aug actuals, used so every KPI reads against where we started */
+var BASE={
+  dealSize:{y25:7919, y26:3368, target:6635},
+  closeRate:{y25:26.9, y26:20.2, target:26.9},
+  organicConv:{y25:11.1, y26:10.1, target:12.4},
+  coverage:{target:3.0},
+  weeklyAccounts:{target:30}
+};
 
 var TARGET=MOTIONS.reduce(function(a,m){return a+m.rev;},0);
 var PIPE_TARGET=MOTIONS.reduce(function(a,m){return a+m.pipe;},0);
@@ -586,6 +640,33 @@ function totals(){
     });
   });
   return {r:r,p:p,R:R,P:P};
+}
+function kpis(){
+  var won=0,opened=0,rev=0,pipe=0,acct=0,acctWeeks=0;
+  var oWon=0,oLeads=0,oRev=0;
+  state.entries.forEach(function(e){
+    if(e.acct){ acct+=e.acct; acctWeeks++; }
+    MOTIONS.forEach(function(m){
+      var c=e.m[m.id]; if(!c) return;
+      rev+=(c.rev||0); pipe+=(c.pipe||0); won+=(c.won||0); opened+=(c.opened||0);
+      if(m.id===5){ oWon+=(c.won||0); oLeads+=(c.opened||0); oRev+=(c.rev||0); }
+    });
+  });
+  var n=state.entries.length;
+  return {
+    rev:rev, pipe:pipe, won:won, opened:opened,
+    dealSize: won? rev/won : null,
+    closeRate: opened? won/opened*100 : null,
+    organicConv: oLeads? oWon/oLeads*100 : null,
+    coverage: (pipe>0 && (TARGET-rev)>0) ? pipe/(TARGET-rev) : null,
+    acctPerWeek: acctWeeks? acct/acctWeeks : null,
+    weeks:n
+  };
+}
+function habitRate(id){
+  var n=state.entries.length; if(!n) return null;
+  var k=0; state.entries.forEach(function(e){ if(e.h&&e.h[id]) k++; });
+  return k/n*100;
 }
 function weekNo(){
   var n=state.entries.length;
@@ -889,7 +970,9 @@ function renderEntryRows(pre){
     var c=(pre&&pre.m&&pre.m[m.id])||{};
     return '<div class="entryrow"><div class="nm"><b>0'+m.id+' · '+m.name+'</b><span>'+m.owner+' · target '+money(m.rev)+'</span></div>'+
       '<div><label>Revenue closed</label><input type="number" min="0" class="inRev" data-m="'+m.id+'" value="'+(c.rev||'')+'" placeholder="0"></div>'+
-      '<div><label>Pipeline added</label><input type="number" min="0" class="inPipe" data-m="'+m.id+'" value="'+(c.pipe||'')+'" placeholder="0"></div></div>';
+      '<div><label>Pipeline added</label><input type="number" min="0" class="inPipe" data-m="'+m.id+'" value="'+(c.pipe||'')+'" placeholder="0"></div>'+
+      '<div><label>Deals won</label><input type="number" min="0" class="inWon" data-m="'+m.id+'" value="'+(c.won||'')+'" placeholder="0"></div>'+
+      '<div><label>'+(m.id===5?'Leads worked':'Deals opened')+'</label><input type="number" min="0" class="inOpen" data-m="'+m.id+'" value="'+(c.opened||'')+'" placeholder="0"></div></div>';
   }).join('');
   [].forEach.call(document.querySelectorAll('.inRev,.inPipe'),function(i){ i.addEventListener('input',liveTot); });
   liveTot();
@@ -931,7 +1014,7 @@ function renderLog(){
       renderAll(); toast('Week deleted'); }; });
   [].forEach.call(el('logList').querySelectorAll('[data-edit]'),function(b){
     b.onclick=function(){ var e=state.entries[+b.dataset.edit];
-      el('wkDate').value=e.week; el('wkNote').value=e.note||''; renderEntryRows(e);
+      el('wkDate').value=e.week; el('wkNote').value=e.note||''; el('wkAcct').value=(e.acct||''); renderEntryRows(e);
       window.scrollTo({top:0,behavior:'smooth'}); toast('Loaded — save to overwrite'); }; });
 }
 el('btnSave').onclick=function(){
@@ -941,13 +1024,16 @@ el('btnSave').onclick=function(){
   var m={},any=false;
   [].forEach.call(document.querySelectorAll('.inRev'),function(i){ var v=num(i.value); if(v){ m[i.dataset.m]=m[i.dataset.m]||{}; m[i.dataset.m].rev=v; any=true; } });
   [].forEach.call(document.querySelectorAll('.inPipe'),function(i){ var v=num(i.value); if(v){ m[i.dataset.m]=m[i.dataset.m]||{}; m[i.dataset.m].pipe=v; any=true; } });
+  [].forEach.call(document.querySelectorAll('.inWon'),function(i){ var v=num(i.value); if(v){ m[i.dataset.m]=m[i.dataset.m]||{}; m[i.dataset.m].won=v; any=true; } });
+  [].forEach.call(document.querySelectorAll('.inOpen'),function(i){ var v=num(i.value); if(v){ m[i.dataset.m]=m[i.dataset.m]||{}; m[i.dataset.m].opened=v; any=true; } });
+  var acctN=num(el('wkAcct').value);
   var hh={};
   [].forEach.call(el('habitRows').querySelectorAll('[data-h]'),function(b){
     if(b.classList.contains('on')) hh[b.dataset.h]=true;
   });
   if(!any && !Object.keys(hh).length){ toast('Nothing to save'); return; }
   var ix=-1; state.entries.forEach(function(e,k){ if(e.week===d) ix=k; });
-  var rec={week:d,m:m,h:hh,note:el('wkNote').value.trim()};
+  var rec={week:d,m:m,h:hh,acct:acctN||null,note:el('wkNote').value.trim()};
   if(ix>=0) state.entries[ix]=rec; else state.entries.push(rec);
   state.entries.sort(function(a,b){ return a.week<b.week?1:-1; });
   if(!state.start||d<state.start) state.start=state.entries[state.entries.length-1].week;
@@ -1058,6 +1144,7 @@ function openPane(id){
   el('p-'+id).classList.add('on');
   if(id==='chart') renderChart();
   if(id==='milestones') renderMs();
+  if(id==='kpi') renderKpiBoard();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 [].forEach.call(document.querySelectorAll('#menu button'),function(b){
@@ -1139,7 +1226,109 @@ function renderAcct(){
   }
 }
 
-function renderAll(){ renderAcct(); renderTop(); renderKpis(); renderDash(); renderMs(); renderLog(); renderMotions(); renderChart(); }
+var BUILD='2026-09-18 06:46 UTC';
+function kcard(o){
+  /* o: {name, who, value, baseline, target, status, pct, na} */
+  var st=o.status||'idle';
+  return '<div class="kc '+st+'">'+
+    '<div class="kn">'+o.name+'</div>'+
+    '<div class="kw">'+o.who+'</div>'+
+    (o.na
+      ? '<div class="kv na">Not tracked yet</div><div class="note-na">'+o.na+'</div>'
+      : '<div class="kv">'+o.value+'</div>'+
+        (o.pct===null?'':'<div class="ktrk"><i style="width:'+Math.max(0,Math.min(100,o.pct))+'%"></i></div>')+
+        '<div class="krow"><span>Baseline'+(o.baseline?'<b>'+o.baseline+'</b>':'<b>&mdash;</b>')+'</span>'+
+        '<span style="text-align:right">Target<b>'+o.target+'</b></span></div>'+
+        '<div class="kst '+st+'">'+(o.statusText||'')+'</div>')+
+  '</div>';
+}
+function pctSev(actual,target,higherIsBetter){
+  if(actual===null||actual===undefined) return {k:'idle',l:'NO DATA YET'};
+  var ratio = higherIsBetter ? actual/target : target/actual;
+  if(ratio>=1) return {k:'good',l:'AT OR ABOVE TARGET'};
+  var gap=Math.round((1-ratio)*100);
+  if(gap<=10) return {k:'slip',l:'SLIPPING · '+gap+'%'};
+  if(gap<=25) return {k:'behind',l:'BEHIND · '+gap+'%'};
+  return {k:'risk',l:'AT RISK · '+gap+'%'};
+}
+function renderKpiBoard(){
+  var k=kpis(), t=totals(), wk=state.entries.length?weekNo():0;
+  var exp=wk?TARGET*Math.min(1,wk/WEEKS):0;
+  var svR=sev(t.R,exp);
+
+  /* ── Tier 1 ── */
+  el('kT1').innerHTML=
+    kcard({name:'ADAP revenue recovered',who:'SS + AM1 · monthly',
+      value:money(t.R), baseline:'$0', target:money(TARGET),
+      status:svR.k, statusText:(wk?svR.l:'NOT STARTED'), pct:t.R/TARGET*100})+
+    kcard({name:'Recovery pace',who:'against the line to day 90 · monthly',
+      value:(wk? (exp>0?Math.round(t.R/exp*100):0)+'%' : '—'),
+      baseline:'100%', target:'90–110%',
+      status:svR.k, statusText:(wk? 'Needed by now '+money(exp) : 'NOT STARTED'),
+      pct:(exp>0?Math.min(100,t.R/exp*100):0)});
+
+  /* ── Tier 2 ── */
+  var wl=Math.max(1,WEEKS-wk);
+  var pipeWeek=k.weeks? k.pipe/k.weeks : null;
+  var pipeSev=pipeWeek===null?{k:'idle',l:'NO DATA YET'}:pctSev(pipeWeek,PIPE_TARGET/WEEKS,true);
+  var covSev=k.coverage===null?{k:'idle',l:'NO DATA YET'}:pctSev(k.coverage,BASE.coverage.target,true);
+  var dsSev=k.dealSize===null?{k:'idle',l:''}:pctSev(k.dealSize,BASE.dealSize.target,true);
+  var crSev=k.closeRate===null?{k:'idle',l:''}:pctSev(k.closeRate,BASE.closeRate.target,true);
+  var ocSev=k.organicConv===null?{k:'idle',l:''}:pctSev(k.organicConv,BASE.organicConv.target,true);
+
+  el('kT2').innerHTML=
+    kcard({name:'Qualified pipeline created',who:'SS + AM1 · weekly',
+      value:(pipeWeek===null?'—':money(Math.round(pipeWeek))+' /wk'),
+      baseline:'—', target:money(Math.round(PIPE_TARGET/WEEKS))+' /wk',
+      status:pipeSev.k, statusText:pipeSev.l,
+      pct:pipeWeek===null?0:pipeWeek/(PIPE_TARGET/WEEKS)*100})+
+    kcard({name:'Pipeline coverage',who:'pipeline ÷ revenue still to find · weekly',
+      value:(k.coverage===null?'—':k.coverage.toFixed(1)+'×'),
+      baseline:'—', target:BASE.coverage.target.toFixed(1)+'×',
+      status:covSev.k, statusText:covSev.l,
+      pct:k.coverage===null?0:k.coverage/BASE.coverage.target*100,
+      na:k.coverage===null?'Builds as pipeline is logged. Below 2× and the target is arithmetic, not effort.':null})+
+    kcard({name:'Average deal size',who:'all motions · weekly',
+      value:(k.dealSize===null?'—':money(Math.round(k.dealSize))),
+      baseline:money(BASE.dealSize.y26)+' (2026)', target:money(BASE.dealSize.target),
+      status:dsSev.k, statusText:dsSev.l||'NO DEALS LOGGED YET',
+      pct:k.dealSize===null?0:k.dealSize/BASE.dealSize.target*100,
+      na:k.dealSize===null?'Log deals won alongside revenue and this fills in. 2025 was '+money(BASE.dealSize.y25)+', 2026 to date '+money(BASE.dealSize.y26)+'.':null})+
+    kcard({name:'Close rate',who:'deals won ÷ deals opened · weekly',
+      value:(k.closeRate===null?'—':k.closeRate.toFixed(1)+'%'),
+      baseline:BASE.closeRate.y26+'% (2026)', target:BASE.closeRate.target+'%',
+      status:crSev.k, statusText:crSev.l||'NO DEALS LOGGED YET',
+      pct:k.closeRate===null?0:k.closeRate/BASE.closeRate.target*100,
+      na:k.closeRate===null?'Log deals opened alongside deals won and this fills in. 2025 was '+BASE.closeRate.y25+'%, 2026 to date '+BASE.closeRate.y26+'%.':null})+
+    kcard({name:'Organic lead conversion',who:'AM1 · motion 05 · weekly',
+      value:(k.organicConv===null?'—':k.organicConv.toFixed(1)+'%'),
+      baseline:BASE.organicConv.y26+'% (2026)', target:BASE.organicConv.target+'%',
+      status:ocSev.k, statusText:ocSev.l||'NO LEADS LOGGED YET',
+      pct:k.organicConv===null?0:k.organicConv/BASE.organicConv.target*100,
+      na:k.organicConv===null?'Log leads worked on motion 05 and this fills in. 2025 was '+BASE.organicConv.y25+'%, 2026 to date '+BASE.organicConv.y26+'%.':null});
+
+  /* ── Tier 3 ── */
+  var acctSev=k.acctPerWeek===null?{k:'idle',l:''}:pctSev(k.acctPerWeek,BASE.weeklyAccounts.target,true);
+  var h3='';
+  h3+=kcard({name:'Named accounts worked',who:'AM1 + SS · weekly',
+    value:(k.acctPerWeek===null?'—':Math.round(k.acctPerWeek)+' /wk'),
+    baseline:'—', target:BASE.weeklyAccounts.target+' /wk',
+    status:acctSev.k, statusText:acctSev.l,
+    pct:k.acctPerWeek===null?0:k.acctPerWeek/BASE.weeklyAccounts.target*100,
+    na:k.acctPerWeek===null?'Optional. Enter a count on the weekly log if you want this tracked.':null});
+  HABITS.forEach(function(hb){
+    var r=habitRate(hb.id);
+    var sv=r===null?{k:'idle',l:'NO WEEKS LOGGED'}:pctSev(r,100,true);
+    h3+=kcard({name:hb.name,who:hb.hint,
+      value:(r===null?'—':Math.round(r)+'%'),
+      baseline:'—', target:'100%',
+      status:sv.k, statusText:(r===null?'NO WEEKS LOGGED':Math.round(r/100*state.entries.length)+' of '+state.entries.length+' weeks kept'),
+      pct:r===null?0:r});
+  });
+  el('kT3').innerHTML=h3;
+}
+
+function renderAll(){ var bl=el('build'); if(bl) bl.textContent='BUILD '+BUILD; renderAcct(); renderTop(); renderKpis(); renderDash(); renderKpiBoard(); renderMs(); renderLog(); renderMotions(); renderChart(); }
 
 /* No service worker. Any previously installed one is removed on load — a stale
    worker can serve old copies of config.js and db.js and mask every update. */
