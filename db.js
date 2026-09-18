@@ -32,7 +32,7 @@ function localWrite(state){
 function rowToMs(r){
   return { id:r.id, ord:r.ord, phase:r.phase, text:r.title, dri:r.dri||'', due:r.due||'',
            status:r.status||'todo', findings:r.findings||'', progress:r.progress||'',
-           done:r.status==='done', updated_at:r.updated_at };
+           out:r.outputs||{}, done:r.status==='done', updated_at:r.updated_at };
 }
 function rowToWeek(r){
   return { id:r.id, week:r.week_ending, m:r.motions||{}, h:r.habits||{}, note:r.note||'' };
@@ -104,7 +104,8 @@ var DB={
   saveMilestone:function(m){
     if(DB.mode!=='cloud'){ return Promise.resolve(); }
     var row={ workspace_id:ws, ord:m.ord, phase:m.phase, title:m.text, dri:m.dri||'',
-              due:m.due||null, status:m.status, findings:m.findings||'', progress:m.progress||'' };
+              due:m.due||null, status:m.status, findings:m.findings||'', progress:m.progress||'',
+              outputs:m.out||{} };
     if(m.id) row.id=m.id;
     return sb.from('milestones').upsert(row).select('id').single()
       .then(function(r){ if(r.data) m.id=r.data.id; });
