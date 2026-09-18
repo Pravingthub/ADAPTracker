@@ -394,7 +394,7 @@ svg.chart{width:100%;height:auto;display:block}
         <div class="grid2"><div>
         <div class="card">
           <h2>Milestone completion</h2>
-          <p class="sub">Seven setup actions across three phases. Everything after day 30 is measured, not ticked.</p>
+          <p class="sub">Five setup actions, then handover. Everything after day 30 is measured, not ticked.</p>
           <div class="rings" id="dashRings"></div>
         </div>
         <div class="card">
@@ -557,9 +557,8 @@ var DEFAULT_MS=[
  ['Days 1–10 · Set up','Every open ADAP deal classified and owned, dead pipeline closed'],
  ['Days 1–10 · Set up','ELA and ADMP no-ADAP lists built, ranked and split by owner'],
  ['Days 1–10 · Set up','First weekly deal room held'],
- ['Days 11–30 · Start the motions','Outreach started on the top 100 named accounts'],
- ['Days 11–30 · Start the motions','Support routing live — first flag reaches an owner and becomes an opportunity'],
- ['Days 11–30 · Start the motions','Every ADAP deal lost above $10K reviewed for reopening'],
+ ['Days 1–10 · Set up','Outreach by Account Managers'],
+ ['Days 1–10 · Set up','Support routing live — first flag reaches an owner and becomes an opportunity'],
  ['Day 90 · Hand over','Cadence running without me — the team reports the four numbers']
 ];
 /* Three milestones are the ignition switch for a KPI. The rest are setup only. */
@@ -580,11 +579,6 @@ var OUTPUTS={
     {k:'ela', l:'ELA customers without ADAP',  t:'n'},
     {k:'admp',l:'ADMP customers without ADAP', t:'n', feeds:'Sets the denominator for named accounts worked'},
     {k:'pipe',l:'Pipeline expected from this base', t:'$', pipeline:true, motion:2}
-  ]},
-  6:{title:'What the review found', motion:3, fields:[
-    {k:'rev',   l:'Lost deals reviewed', t:'n'},
-    {k:'reopen',l:'Reopened',            t:'n'},
-    {k:'val',   l:'Value reopened',      t:'$', pipeline:true, motion:3}
   ]}
 };
 function motionById(id){ var f=null; MOTIONS.forEach(function(m){ if(m.id===id) f=m; }); return f; }
@@ -1352,7 +1346,7 @@ function renderAcct(){
   }
 }
 
-var BUILD='2026-09-18 07:32 UTC';
+var BUILD='2026-09-18 07:41 UTC';
 function kcard(o){
   /* o: {name, who, value, baseline, target, status, pct, na} */
   var st=o.status||'idle';
