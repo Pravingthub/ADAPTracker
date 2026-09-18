@@ -395,7 +395,7 @@ svg.chart{width:100%;height:auto;display:block}
         <div class="grid2"><div>
         <div class="card">
           <h2>Milestone completion</h2>
-          <p class="sub">Five setup actions, then handover. Everything after day 30 is measured, not ticked.</p>
+          <p class="sub">Four setup actions. Everything after them is measured on the KPIs tab, not ticked here.</p>
           <div class="rings" id="dashRings"></div>
         </div>
         <div class="card">
@@ -557,16 +557,13 @@ var PIPE_TARGET=MOTIONS.reduce(function(a,m){return a+m.pipe;},0);
 var DEFAULT_MS=[
  ['Days 1–10 · Set up','Every open ADAP deal classified and owned, dead pipeline closed'],
  ['Days 1–10 · Set up','ELA and ADMP no-ADAP lists built, ranked and split by owner'],
- ['Days 1–10 · Set up','First weekly deal room held'],
  ['Days 1–10 · Set up','Outreach by Account Managers'],
- ['Days 1–10 · Set up','Support routing live — first flag reaches an owner and becomes an opportunity'],
- ['Day 90 · Hand over','Cadence running without me — the team reports the four numbers']
+ ['Days 1–10 · Set up','Support routing live — first flag reaches an owner and becomes an opportunity']
 ];
 /* Three milestones are the ignition switch for a KPI. The rest are setup only. */
 var STARTS={
-  3:{kind:'habit', id:1, label:'Deal room held'},
-  4:{kind:'acct',  id:0, label:'Named accounts worked'},
-  5:{kind:'habit', id:4, label:'Support flags routed'}
+  3:{kind:'acct',  id:0, label:'Named accounts worked'},
+  4:{kind:'habit', id:4, label:'Support flags routed'}
 };
 /* Milestones that produce numbers. These feed the KPI board directly. */
 var OUTPUTS={
@@ -581,6 +578,16 @@ var OUTPUTS={
     {k:'admp',  l:'ADMP customers without ADAP', t:'n'},
     {k:'unique',l:'Unique accounts after overlap',t:'n', feeds:'Sets the denominator for named accounts worked'},
     {k:'rev',   l:'Revenue expected from outreach', t:'$', revenue:true, motion:2}
+  ]},
+  3:{title:'The AM outbound base', motion:2, fields:[
+    {k:'domains',l:'Unique domains without ADAP · Jan 25 – Jun 26', t:'n'},
+    {k:'convpc', l:'Historic outbound conversion %',                t:'n', feeds:'Used to sanity-check the forecast'},
+    {k:'rev',    l:'Revenue expected from this base',               t:'$', revenue:true, motion:2}
+  ]},
+  4:{title:'What the support channel produced last year', motion:4, fields:[
+    {k:'leads', l:'Leads sent Oct–Dec 2025',        t:'n'},
+    {k:'conv',  l:'Converted from those',           t:'n'},
+    {k:'rev',   l:'Revenue expected this year',     t:'$', revenue:true, motion:4}
   ]}
 };
 function motionById(id){ var f=null; MOTIONS.forEach(function(m){ if(m.id===id) f=m; }); return f; }
@@ -1058,6 +1065,11 @@ function renderMs(){
                   return '<span class="feeds">Real pipeline · motion 0'+mm.id+' needs '+money(mm.pipe)+
                     (got? ' · this covers '+pc+'%' : '')+'</span>';
                 }
+                if(f.k==='conv'){
+                  var lead=outVal(m.ord||i+1,'leads'), cv=outVal(m.ord||i+1,'conv');
+                  if(lead&&cv) return '<span class="feeds">'+(cv/lead*100).toFixed(1)+'% converted last year</span>';
+                  return '<span class="feeds forecast">Sets the historic conversion rate</span>';
+                }
                 if(f.revenue){
                   if(!mm) return '<span class="feeds">A forecast, not pipeline</span>';
                   var rc=Math.round(got/mm.rev*100);
@@ -1369,7 +1381,7 @@ function renderAcct(){
   }
 }
 
-var BUILD='2026-09-18 07:58 UTC';
+var BUILD='2026-09-18 08:05 UTC';
 function kcard(o){
   /* o: {name, who, value, baseline, target, status, pct, na} */
   var st=o.status||'idle';
@@ -1456,7 +1468,7 @@ function renderKpiBoard(){
   /* ── Tier 3 ── */
   var acctSev=k.acctPerWeek===null?{k:'idle',l:''}:pctSev(k.acctPerWeek,BASE.weeklyAccounts.target,true);
   var h3='';
-  var accSt=starterState(4);
+  var accSt=starterState(3);
   var base=addressableBase();
   var fc=msRevenueExpected(2);
   h3+=kcard({name:'Named accounts worked',
@@ -1471,8 +1483,7 @@ function renderKpiBoard(){
     var r=habitRate(hb.id);
     var sv=r===null?{k:'idle',l:'NO WEEKS LOGGED'}:pctSev(r,100,true);
     var link=null;
-    if(hb.id===1) link=starterState(3);
-    if(hb.id===4) link=starterState(5);
+    if(hb.id===4) link=starterState(4);
     h3+=kcard({name:hb.name,who:hb.hint, startedBy:link,
       value:(r===null?'—':Math.round(r)+'%'),
       baseline:'—', target:'100%',
