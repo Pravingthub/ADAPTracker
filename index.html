@@ -325,6 +325,8 @@ svg.chart{width:100%;height:auto;display:block}
 .h2-k{font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;color:var(--mut2);text-transform:uppercase}
 .h2-n{font-family:var(--mono);font-size:32px;font-weight:600;letter-spacing:-.04em;line-height:1;margin-top:9px;color:var(--gold)}
 .h2-sub{font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:9px}
+.h2-warn{display:inline-block;margin-left:10px;font-size:9px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--warn);border:1px solid rgba(201,160,87,.4);border-radius:5px;padding:2px 7px}
 .h2-input{padding:20px 24px;border-left:1px solid var(--line);display:flex;flex-direction:column;justify-content:center}
 .h2-input label{font-family:var(--mono);font-size:8.5px;letter-spacing:.11em;color:var(--mut2);text-transform:uppercase;margin-bottom:8px;display:block}
 .h2-input input{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padding:11px 13px;
@@ -605,6 +607,7 @@ var MOTIONS=[
  {id:4,name:'Support-sourced',         owner:'Support → owner', rev:25000, pipe:78125},
  {id:5,name:'Organic leads we do get', owner:'AM',              rev:35170, pipe:109906},
  {id:6,name:'Run rate · Sep–Dec',       owner:'SS + AM',         rev:577000, pipe:1803125, run:true}
+ /* rev and pipe above are defaults only — overwritten from milestone 5 by syncRunTarget() */
 ];
 var RECOVERY=MOTIONS.filter(function(m){return !m.run;});
 var RUNLINE=MOTIONS.filter(function(m){return m.run;});
@@ -665,6 +668,7 @@ var OUTPUTS={
     {k:'rev',    l:'Revenue expected from this base',               t:'$', revenue:true, motion:2}
   ]},
   5:{title:'The Sep–Dec run rate', motion:6, fields:[
+    {k:'target',l:'Sep–Dec commitment',         t:'$', target:true, motion:6},
     {k:'pipe',  l:'Pipeline for the quarter',   t:'$', pipeline:true, motion:6},
     {k:'sameq', l:'Same-quarter conversion',    t:'$', runrev:true, motion:6},
     {k:'other', l:'Other · carried pipeline',   t:'$', runrev:true, motion:6}
@@ -1104,7 +1108,8 @@ function renderMsHero(){
       '<div class="h2-commit">'+
         '<div class="h2-k">Total to close</div>'+
         '<div class="h2-n">'+money(TARGET)+'</div>'+
-        '<div class="h2-sub">'+money(TARGET_REC)+' deficit &nbsp;+&nbsp; '+money(TARGET_RUN)+' Sep–Dec</div>'+
+        '<div class="h2-sub">'+money(TARGET_REC)+' deficit &nbsp;+&nbsp; '+money(TARGET_RUN)+' Sep–Dec'+
+          (outVal(5,'target')?'':'<span class="h2-warn">Sep–Dec not set · placeholder</span>')+'</div>'+
       '</div>'+
       '<div class="h2-input">'+
         '<label for="expTotal">Total revenue expected · everything in</label>'+
@@ -1246,6 +1251,12 @@ function renderMs(){
                 var got=outVal(m.ord||i+1,f.k)||0;
                 if(f.pipeline){
                   if(!mm) return '<span class="feeds">Adds to pipeline built and coverage</span>';
+                  if(mm.id===6){
+                    var tg=outVal(m.ord||i+1,'target');
+                    if(!tg) return '<span class="feeds forecast">Set the commitment above first</span>';
+                    return '<span class="feeds">'+(got? 'Implies a <b>'+Math.round(tg/got*100)+'% close rate</b> to hit '+money(tg)
+                                                     : 'What has to close at ~32% to reach '+money(tg))+'</span>';
+                  }
                   var pc=Math.round(got/mm.pipe*100);
                   return '<span class="feeds">Real pipeline · motion 0'+mm.id+' needs '+money(mm.pipe)+
                     (got? ' · <b>covers '+pc+'%</b>' : '')+'</span>';
@@ -1255,10 +1266,18 @@ function renderMs(){
                   if(lead&&cv) return '<span class="feeds">'+(cv/lead*100).toFixed(1)+'% converted last year</span>';
                   return '<span class="feeds forecast">Sets the historic conversion rate</span>';
                 }
+                if(f.target){
+                  var tv=outVal(m.ord||i+1,'target');
+                  return '<span class="feeds'+(tv?'':' forecast')+'">'+
+                    (tv? 'Everything on this page counts against <b>'+money(tv)+'</b>'
+                       : 'Not set — using '+money(577000)+' as a placeholder')+'</span>';
+                }
                 if(f.runrev){
+                  var tgt=outVal(m.ord||i+1,'target');
                   var sq=outVal(m.ord||i+1,'sameq')||0, ot=outVal(m.ord||i+1,'other')||0, tot=sq+ot;
-                  if(!tot) return '<span class="feeds forecast">Counts toward the Sep–Dec '+money(TARGET_RUN)+'</span>';
-                  return '<span class="feeds">'+Math.round((f.k==='sameq'?sq:ot)/tot*100)+'% of the '+money(tot)+' identified · target '+money(TARGET_RUN)+'</span>';
+                  if(!tot) return '<span class="feeds forecast">'+(tgt? 'Counts toward the '+money(tgt):'Counts toward the Sep–Dec commitment')+'</span>';
+                  return '<span class="feeds">'+Math.round((f.k==='sameq'?sq:ot)/tot*100)+'% of the '+money(tot)+' identified'+
+                    (tgt? ' · target '+money(tgt):'')+'</span>';
                 }
                 if(f.revenue){
                   if(!mm) return '<span class="feeds">A forecast, not pipeline</span>';
@@ -1579,7 +1598,7 @@ function renderAcct(){
   }
 }
 
-var BUILD='2026-09-18 10:20 UTC';
+var BUILD='2026-09-18 10:30 UTC';
 function kmRow(label,value,sub,cls){
   return '<div class="kmr"><div class="kml">'+label+'</div>'+
     '<div class="kmv '+(cls||'')+'">'+value+'</div>'+
@@ -1684,7 +1703,17 @@ function renderKpiBoard(){
   }).join('');
 }
 
-function renderAll(){ var bl=el('build'); if(bl) bl.textContent='BUILD '+BUILD; renderAcct(); renderTop(); renderKpis(); renderDash(); renderKpiBoard(); renderMs(); renderLog(); renderMotions(); renderChart(); }
+function syncRunTarget(){
+  var m6=motionById(6); if(!m6) return;
+  var t=outVal(5,'target');
+  m6.rev = (t===null||t===0)? 577000 : t;              /* 577,000 is only a fallback */
+  var p=outVal(5,'pipe');
+  m6.pipe = (p===null||p===0)? Math.round(m6.rev/0.32) : p;
+  TARGET_RUN=m6.rev;  PIPE_RUN=m6.pipe;
+  TARGET=TARGET_REC+TARGET_RUN;
+  PIPE_TARGET=PIPE_REC+PIPE_RUN;
+}
+function renderAll(){ syncRunTarget(); var bl=el('build'); if(bl) bl.textContent='BUILD '+BUILD; renderAcct(); renderTop(); renderKpis(); renderDash(); renderKpiBoard(); renderMs(); renderLog(); renderMotions(); renderChart(); }
 
 /* No service worker. Any previously installed one is removed on load — a stale
    worker can serve old copies of config.js and db.js and mask every update. */
