@@ -2,6 +2,7 @@
    Supabase when config.js is filled in and you are signed in.
    Browser storage otherwise, so the app still works with no account and no network. */
 (function(){
+var WSEXP=null;
 "use strict";
 
 var KEY='adap-recovery-v5';
@@ -76,9 +77,15 @@ var DB={
     });
   },
 
+  saveExpected:function(v){
+    if(DB.mode!=='cloud'){ return Promise.resolve(); }
+    WSEXP=v;
+    return sb.from('workspaces').update({expected:v}).eq('id',ws);
+  },
+
   load:function(){
     if(DB.mode!=='cloud'){ return Promise.resolve(localRead()); }
-    return sb.from('workspaces').select('id,name,target,weeks').limit(1).maybeSingle()
+    return sb.from('workspaces').select('id,name,target,weeks,expected').limit(1).maybeSingle()
       .then(function(r){
         if(r.error || !r.data){
           var msg=String((r.error&&r.error.message)||'');
@@ -87,7 +94,7 @@ var DB={
           }
           throw r.error;
         }
-        ws=r.data.id;
+        ws=r.data.id; WSEXP=(r.data.expected===null||r.data.expected===undefined)?null:Number(r.data.expected);
         return Promise.all([
           sb.from('milestones').select('*').eq('workspace_id',ws).order('ord'),
           sb.from('weeks').select('*').eq('workspace_id',ws).order('week_ending',{ascending:false})
@@ -97,7 +104,7 @@ var DB={
         var ms=(res[0].data||[]).map(rowToMs);
         var wk=(res[1].data||[]).map(rowToWeek);
         var start = wk.length ? wk[wk.length-1].week : '';
-        return { start:start, ms:ms, entries:wk };
+        return { start:start, ms:ms, entries:wk, expected:WSEXP };
       });
   },
 
