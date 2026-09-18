@@ -451,7 +451,6 @@ svg.chart{width:100%;height:auto;display:block}
         <div class="card">
           <h2>Milestone completion</h2>
           <p class="sub">Four setup actions. Everything after them is measured on the KPIs tab, not ticked here.</p>
-          <div id="msHero"></div>
           <div class="rings" id="dashRings"></div>
         </div>
         <div class="card">
@@ -472,7 +471,8 @@ svg.chart{width:100%;height:auto;display:block}
       <section class="pane" id="p-milestones">
         <div class="card">
           <h2>The 90 days</h2>
-          <p class="sub">Actions with a start and an end. Targets and deal sizes live on the Motions tab, not here.</p>
+          <p class="sub">Four setup actions. What they uncover is the raw material for the whole recovery.</p>
+          <div id="msHero"></div>
           <div id="msFilters"></div>
           <div id="msList"></div>
         </div>
@@ -1484,7 +1484,7 @@ function renderAcct(){
   }
 }
 
-var BUILD='2026-09-18 08:56 UTC';
+var BUILD='2026-09-18 09:00 UTC';
 function kmRow(label,value,sub,cls){
   return '<div class="kmr"><div class="kml">'+label+'</div>'+
     '<div class="kmv '+(cls||'')+'">'+value+'</div>'+
