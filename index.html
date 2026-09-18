@@ -310,9 +310,9 @@ svg.chart{width:100%;height:auto;display:block}
   transition:transform .3s cubic-bezier(.2,.8,.2,1);z-index:99}
 .toast.on{transform:translateX(-50%) translateY(0)}
 /* ───── milestones hero ───── */
-.mshero{display:grid;grid-template-columns:1fr auto;gap:26px;align-items:center;
+.mshero{display:grid;grid-template-columns:1fr auto;gap:26px;align-items:center;margin-bottom:0 !important;
   background:linear-gradient(135deg,rgba(217,164,65,.11),rgba(217,164,65,.02) 60%,transparent),var(--card2);
-  border:1px solid rgba(217,164,65,.3);border-radius:11px;padding:20px 24px;margin:0 0 22px}
+  border:1px solid rgba(217,164,65,.3);border-radius:11px;padding:20px 24px;margin:0}
 .mshero.covered{background:linear-gradient(135deg,rgba(111,169,122,.12),rgba(111,169,122,.02) 60%,transparent),var(--card2);
   border-color:rgba(111,169,122,.35)}
 .mh-k{font-family:var(--mono);font-size:9.5px;letter-spacing:.15em;color:var(--mut);text-transform:uppercase}
@@ -331,6 +331,7 @@ svg.chart{width:100%;height:auto;display:block}
 .mh-lg i{width:9px;height:9px;border-radius:2px;display:block}
 .mh-lg i.backed{background:var(--gold)} .mh-lg i.fore{background:rgba(217,164,65,.38)}
 .mh-r{display:flex;flex-direction:column;gap:14px;text-align:right}
+.mh-note{font-size:11.5px;color:var(--mut2);margin:10px 2px 22px;line-height:1.5;max-width:82ch}
 .mh-stat b{display:block;font-family:var(--mono);font-size:19px;font-weight:600;letter-spacing:-.03em;color:var(--ink)}
 .mh-stat span{display:block;font-size:10.5px;color:var(--mut2);margin-top:4px}
 @media(max-width:760px){.mshero{grid-template-columns:1fr;gap:18px}.mh-r{flex-direction:row;gap:26px;text-align:left}}
@@ -1045,29 +1046,34 @@ function isLate(m,today){ return m.status!=='done' && m.due && Math.round((new D
 function renderMsHero(){
   var box=el('msHero'); if(!box) return;
   var r=msRevenueSplit(), pipe=msPipeline().total;
-  if(!r.total){ box.innerHTML=''; return; }
+  if(!r.total && !pipe){ box.innerHTML=''; return; }
   var pc=Math.min(100,r.total/TARGET*100);
   var gap=TARGET-r.total;
   var bp=r.total? r.backed/r.total*100 : 0;
+  var implied=(pipe&&r.backed)? (r.backed/pipe*100) : null;
   box.innerHTML='<div class="mshero'+(gap<=0?' covered':'')+'">'+
     '<div class="mh-l">'+
-      '<div class="mh-k">Identified so far</div>'+
+      '<div class="mh-k">Revenue identified · from the four milestones</div>'+
       '<div class="mh-n">'+money(r.total)+'</div>'+
-      '<div class="mh-s">of <b>'+money(TARGET)+'</b> · '+
-        (gap>0? '<span class="short">'+money(gap)+' still unaccounted for</span>'
+      '<div class="mh-s">of <b>'+money(TARGET)+'</b> committed · '+
+        (gap>0? '<span class="short">'+money(gap)+' with no source yet</span>'
               : '<span class="over">'+money(-gap)+' above the commitment</span>')+'</div>'+
       '<div class="mh-bar"><i class="backed" style="width:'+(pc*bp/100)+'%"></i>'+
         '<i class="fore" style="width:'+(pc*(100-bp)/100)+'%"></i></div>'+
       '<div class="mh-lg">'+
-        '<span><i class="backed"></i>'+money(r.backed)+' backed by pipeline</span>'+
-        '<span><i class="fore"></i>'+money(r.forecast)+' forecast</span>'+
+        '<span><i class="backed"></i>'+money(r.backed)+' backed by real pipeline</span>'+
+        '<span><i class="fore"></i>'+money(r.forecast)+' forecast from cold bases</span>'+
       '</div>'+
     '</div>'+
     '<div class="mh-r">'+
-      '<div class="mh-stat"><b>'+money(pipe)+'</b><span>real pipeline found</span></div>'+
-      '<div class="mh-stat"><b>'+Math.round(pc)+'%</b><span>of the commitment</span></div>'+
+      '<div class="mh-stat"><b>'+money(pipe)+'</b><span>pipeline behind the '+money(r.backed)+'</span></div>'+
+      (implied!==null
+        ? '<div class="mh-stat"><b>'+implied.toFixed(0)+'%</b><span>close rate that assumes</span></div>'
+        : '<div class="mh-stat"><b>'+Math.round(pc)+'%</b><span>of the commitment</span></div>')+
     '</div>'+
-  '</div>';
+  '</div>'+
+  '<p class="mh-note">Pipeline is not revenue. The '+money(pipe)+' of open deals is expected to yield '+
+    money(r.backed)+', and that yield is what counts toward the '+money(TARGET)+' above.</p>';
 }
 
 function renderMs(){
@@ -1484,7 +1490,7 @@ function renderAcct(){
   }
 }
 
-var BUILD='2026-09-18 09:00 UTC';
+var BUILD='2026-09-18 09:04 UTC';
 function kmRow(label,value,sub,cls){
   return '<div class="kmr"><div class="kml">'+label+'</div>'+
     '<div class="kmv '+(cls||'')+'">'+value+'</div>'+
