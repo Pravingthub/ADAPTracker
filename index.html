@@ -583,7 +583,8 @@ var OUTPUTS={
     {k:'tasks',l:'ADAP tasks scrubbed',t:'n'},
     {k:'live', l:'Live deals kept',   t:'n'},
     {k:'dead', l:'Dead deals closed', t:'n'},
-    {k:'pipe', l:'Pipeline found',    t:'$', pipeline:true, motion:1}
+    {k:'pipe', l:'Pipeline found',    t:'$', pipeline:true, motion:1},
+    {k:'rev',  l:'Revenue expected from it', t:'$', revenue:true, backed:true, motion:1}
   ]},
   2:{title:'The addressable base', motion:2, fields:[
     {k:'ela',   l:'ELA customers without ADAP',  t:'n'},
@@ -1093,6 +1094,11 @@ function renderMs(){
                 if(f.revenue){
                   if(!mm) return '<span class="feeds">A forecast, not pipeline</span>';
                   var rc=Math.round(got/mm.rev*100);
+                  if(f.backed){
+                    var pf=outVal(m.ord||i+1,'pipe');
+                    return '<span class="feeds">Backed by'+(pf?' the '+money(pf)+' found':' real pipeline')+
+                      ' · motion 0'+mm.id+' targets '+money(mm.rev)+(got? ' · this covers '+rc+'%' : '')+'</span>';
+                  }
                   return '<span class="feeds forecast">Forecast, not pipeline · motion 0'+mm.id+' targets '+money(mm.rev)+
                     (got? ' · this covers '+rc+'%' : '')+'</span>';
                 }
@@ -1401,7 +1407,7 @@ function renderAcct(){
   }
 }
 
-var BUILD='2026-09-18 08:17 UTC';
+var BUILD='2026-09-18 08:38 UTC';
 function kmRow(label,value,sub,cls){
   return '<div class="kmr"><div class="kml">'+label+'</div>'+
     '<div class="kmv '+(cls||'')+'">'+value+'</div>'+
@@ -1426,15 +1432,16 @@ function renderKpiBoard(){
 
   /* ── 1 · the scrub ── */
   (function(){
-    var found=outVal(1,'pipe')||0, live=outVal(1,'live'), a1=act(1), mm=motionById(1);
+    var found=outVal(1,'pipe')||0, live=outVal(1,'live'), fc1=outVal(1,'rev')||0, a1=act(1), mm=motionById(1);
     var sv=wk? sev(a1.rev, mm.rev*frac) : {k:'idle',l:'NOT STARTED'};
     cards.push({cls:sv.k, name:'Every open ADAP deal classified and owned',
       motion:'Motion 01 · target '+money(mm.rev),
       rows:[
         kmRow('Pipeline found', found?money(found):'—', found?'real pipeline, from the scrub':'enter it on the milestone'),
         kmRow('Live deals kept', live!==null?live:'—', 'after dead pipeline was closed'),
+        kmRow('Revenue expected', fc1?money(fc1):'—', (found&&fc1)? Math.round(fc1/found*100)+'% of the pipeline found':'backed by real pipeline'),
         kmRow('Closed so far', money(a1.rev), a1.won?a1.won+' deals':'nothing logged yet','v-actual'),
-        kmRow('Conversion of that pipeline', found? (a1.rev/found*100).toFixed(1)+'%' : '—', found?'of '+money(found)+' found':'—')
+        kmRow('Conversion of that pipeline', found? (a1.rev/found*100).toFixed(1)+'%' : '—', fc1? Math.round(a1.rev/fc1*100)+'% of what we expected':'—')
       ], status:sv.l});
   })();
 
