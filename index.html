@@ -316,38 +316,47 @@ svg.chart{width:100%;height:auto;display:block}
   transition:transform .3s cubic-bezier(.2,.8,.2,1);z-index:99}
 .toast.on{transform:translateX(-50%) translateY(0)}
 /* ───── milestones hero ───── */
-.mshero{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-bottom:18px;
-  background:linear-gradient(135deg,rgba(217,164,65,.11),rgba(217,164,65,.02) 60%,transparent),var(--card2);
-  border:1px solid rgba(217,164,65,.3);border-radius:10px;padding:14px 18px;
-  width:fit-content;max-width:min(100%,900px);margin:0 0 24px}
-.mshero.covered{background:linear-gradient(135deg,rgba(111,169,122,.12),rgba(111,169,122,.02) 60%,transparent),var(--card2);
-  border-color:rgba(111,169,122,.35)}
-.mh-k{font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;color:var(--mut2);text-transform:uppercase;white-space:nowrap}
-.mh-n{font-family:var(--mono);font-size:24px;font-weight:600;letter-spacing:-.035em;line-height:1;margin-top:6px;color:var(--gold);white-space:nowrap}
-.mshero.covered .mh-n{color:var(--pos)}
+.hero2{border:1px solid var(--line2);border-radius:12px;background:var(--card2);
+  margin:26px 0 0;overflow:hidden}
+.h2-top{display:grid;grid-template-columns:1fr minmax(260px,340px);gap:0;
+  background:linear-gradient(135deg,rgba(217,164,65,.10),rgba(217,164,65,.02) 60%,transparent),var(--card2);
+  border-bottom:1px solid var(--line)}
+.h2-commit{padding:20px 24px}
+.h2-k{font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;color:var(--mut2);text-transform:uppercase}
+.h2-n{font-family:var(--mono);font-size:32px;font-weight:600;letter-spacing:-.04em;line-height:1;margin-top:9px;color:var(--gold)}
+.h2-sub{font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:9px}
+.h2-input{padding:20px 24px;border-left:1px solid var(--line);display:flex;flex-direction:column;justify-content:center}
+.h2-input label{font-family:var(--mono);font-size:8.5px;letter-spacing:.11em;color:var(--mut2);text-transform:uppercase;margin-bottom:8px;display:block}
+.h2-input input{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padding:11px 13px;
+  font-family:var(--mono);font-size:19px;font-weight:600;letter-spacing:-.03em;color:var(--ink);width:100%}
+.h2-input input:focus{outline:none;border-color:var(--gold)}
+.h2-input input::placeholder{font-size:12px;font-weight:400;color:#3C424C;letter-spacing:0}
+.h2-hint{font-size:11px;color:var(--mut2);margin-top:9px;line-height:1.4}
+.h2-hint .ok{color:var(--pos);font-weight:600}
+.h2-hint .bad{color:var(--neg);font-weight:600}
 
-
-
-
-.mh-bar{display:flex;height:4px;border-radius:3px;overflow:hidden;background:var(--line);margin:0 0 10px;width:100%}
-.mh-bar i{display:block;height:4px}
-.mh-bar i.backed{background:var(--gold)}
-.mh-bar i.fore{background:rgba(217,164,65,.38)}
-.mh-lg{display:flex;gap:20px;flex-wrap:wrap;font-size:11.5px;color:var(--mut)}
-.mh-lg b{color:var(--ink);font-weight:600;font-family:var(--mono);font-size:12px;letter-spacing:-.02em}
-.mh-lg span{display:flex;align-items:center;gap:9px}
-.mh-lg i{width:9px;height:9px;border-radius:2px;display:block}
-.mh-lg i.backed{background:var(--gold)} .mh-lg i.fore{background:rgba(217,164,65,.38)}
-
-
-
-
-.mh-fig{flex:none;padding-right:22px;border-right:1px solid var(--line2)}
-.mh-fig.run{padding-right:0;padding-left:22px;border-right:0;border-left:1px solid var(--line2)}
-.mh-fig.run .mh-n{color:var(--teal)}
-.mh-sub{font-family:var(--mono);font-size:10px;color:var(--mut2);margin-top:7px;white-space:nowrap}
-.mh-body{min-width:220px;flex:0 1 auto}
-@media(max-width:620px){.mshero{gap:14px}.mh-fig{border-right:0;padding-right:0}.mh-lg{gap:14px}}
+.h2-split{display:grid;grid-template-columns:1fr 1fr}
+.h2-block{padding:18px 24px}
+.h2-block + .h2-block{border-left:1px solid var(--line)}
+.h2-bk{font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;color:var(--mut2);text-transform:uppercase}
+.h2-bn{font-family:var(--mono);font-size:22px;font-weight:600;letter-spacing:-.035em;line-height:1;margin-top:8px;color:var(--gold)}
+.h2-bn.run{color:var(--teal)}
+.h2-bar{display:flex;height:4px;border-radius:3px;overflow:hidden;background:var(--line);margin:13px 0 11px}
+.h2-bar i{display:block;height:4px}
+.h2-bar i.a{background:var(--gold)} .h2-bar i.b{background:rgba(217,164,65,.34)}
+.h2-bar i.c{background:var(--teal)} .h2-bar i.d{background:rgba(107,168,164,.34)}
+.h2-lg{display:flex;flex-direction:column;gap:7px;font-size:11.5px;color:var(--mut)}
+.h2-lg span{display:flex;align-items:center;gap:9px}
+.h2-lg i{width:9px;height:9px;border-radius:2px;flex:none}
+.h2-lg i.a{background:var(--gold)} .h2-lg i.b{background:rgba(217,164,65,.34)}
+.h2-lg i.c{background:var(--teal)} .h2-lg i.d{background:rgba(107,168,164,.34)}
+.h2-lg b{color:var(--ink);font-weight:600;font-family:var(--mono);font-size:12px;letter-spacing:-.02em}
+.h2-of{font-family:var(--mono);font-size:10px;color:var(--mut2);margin-top:11px;padding-top:10px;border-top:1px solid var(--line)}
+.h2-foot{padding:13px 24px;border-top:1px solid var(--line);background:var(--card);
+  font-size:11.5px;color:var(--mut)}
+.h2-foot b{color:var(--ink);font-family:var(--mono);font-size:12.5px;font-weight:600;letter-spacing:-.02em}
+@media(max-width:860px){.h2-top{grid-template-columns:1fr}.h2-input{border-left:0;border-top:1px solid var(--line)}
+  .h2-split{grid-template-columns:1fr}.h2-block + .h2-block{border-left:0;border-top:1px solid var(--line)}}
 
 /* ───── milestone outputs ───── */
 .outs{margin-top:13px;padding-top:12px;border-top:1px solid var(--line)}
@@ -488,9 +497,9 @@ svg.chart{width:100%;height:auto;display:block}
         <div class="card">
           <h2>The 90 days</h2>
           <p class="sub">Four setup actions. What they uncover is the raw material for the whole recovery.</p>
-          <div id="msHero"></div>
           <div id="msFilters"></div>
           <div id="msList"></div>
+          <div id="msHero"></div>
         </div>
       </section>
 
@@ -656,8 +665,9 @@ var OUTPUTS={
     {k:'rev',    l:'Revenue expected from this base',               t:'$', revenue:true, motion:2}
   ]},
   5:{title:'The Sep–Dec run rate', motion:6, fields:[
-    {k:'pipe',l:'Pipeline for the quarter', t:'$', pipeline:true, motion:6},
-    {k:'rev', l:'Revenue expected',         t:'$', revenue:true, backed:true, motion:6}
+    {k:'pipe',  l:'Pipeline for the quarter',   t:'$', pipeline:true, motion:6},
+    {k:'sameq', l:'Same-quarter conversion',    t:'$', runrev:true, motion:6},
+    {k:'other', l:'Other · carried pipeline',   t:'$', runrev:true, motion:6}
   ]},
   4:{title:'What the support channel produced last year', motion:4, fields:[
     {k:'leads', l:'Leads sent Oct–Dec 2025',        t:'n'},
@@ -668,17 +678,18 @@ var OUTPUTS={
 function motionById(id){ var f=null; MOTIONS.forEach(function(m){ if(m.id===id) f=m; }); return f; }
 /* every output flagged as pipeline, summed, so coverage reflects what we have identified */
 function msRevenueSplit(){
-  var backed=0, forecast=0, run=0;
+  var backed=0, forecast=0;
   Object.keys(OUTPUTS).forEach(function(ord){
     OUTPUTS[ord].fields.forEach(function(f){
-      if(!f.revenue) return;
+      if(!f.revenue || f.motion===6) return;
       var v=outVal(Number(ord),f.k)||0;
       if(!v) return;
-      if(f.motion===6){ run+=v; return; }          /* run rate is its own stream */
       if(f.backed) backed+=v; else forecast+=v;
     });
   });
-  return {backed:backed, forecast:forecast, total:backed+forecast, run:run};
+  var sameq=outVal(5,'sameq')||0, other=outVal(5,'other')||0;
+  return {backed:backed, forecast:forecast, total:backed+forecast,
+          sameq:sameq, other:other, run:sameq+other};
 }
 function msRevenueExpected(motionId){
   var total=0;
@@ -732,7 +743,7 @@ function starterState(ord){
 
 function freshMs(){ return DEFAULT_MS.map(function(m,i){return {id:i+1,phase:m[0],text:m[1],dri:'',due:'',status:'todo',findings:'',progress:'',done:false};}); }
 
-var state={start:'',entries:[],ms:[]}, mem=null;
+var state={start:'',entries:[],ms:[],expected:null}, mem=null;
 
 function save(){ if(window.ADAP_DB) DB.saveAll(state).catch(function(){ toast('Could not save to the cloud'); }); }
 function saveMs(i){
@@ -747,7 +758,8 @@ function saveWeek(e){
   else DB.saveAll(state);
 }
 function apply(v){
-  if(v){ try{ var d=JSON.parse(v); state.start=d.start||''; state.entries=d.entries||[]; state.ms=d.ms||[]; }catch(e){} }
+  if(v){ try{ var d=JSON.parse(v); state.start=d.start||''; state.entries=d.entries||[]; state.ms=d.ms||[];
+    state.expected=(d.expected===undefined||d.expected===null)?null:Number(d.expected); }catch(e){} }
   if(!state.ms.length) state.ms=freshMs();
   state.ms.forEach(function(m){
     if(m.dri===undefined) m.dri=m.owner||'';
@@ -1081,24 +1093,69 @@ function isLate(m,today){ return m.status!=='done' && m.due && Math.round((new D
 function renderMsHero(){
   var box=el('msHero'); if(!box) return;
   var r=msRevenueSplit();
-  if(!r.total){ box.innerHTML=''; return; }
-  var pc=Math.min(100,r.total/TARGET_REC*100);
-  var bp=r.total? r.backed/r.total*100 : 0;
-  box.innerHTML='<div class="mshero'+(r.total>=TARGET_REC?' covered':'')+'">'+
-    '<div class="mh-fig"><div class="mh-k">Revenue identified</div>'+
-      '<div class="mh-n">'+money(r.total)+'</div></div>'+
-    '<div class="mh-body">'+
-      '<div class="mh-bar"><i class="backed" style="width:'+(pc*bp/100)+'%"></i>'+
-        '<i class="fore" style="width:'+(pc*(100-bp)/100)+'%"></i></div>'+
-      '<div class="mh-lg">'+
-        '<span><i class="backed"></i><b>'+money(r.backed)+'</b> from real pipeline</span>'+
-        '<span><i class="fore"></i><b>'+money(r.forecast)+'</b> forecast from cold bases</span>'+
+  var idTotal=r.total+r.run;
+  var exp=(state.expected===null||state.expected===undefined)?'':state.expected;
+  function seg(v,tot){ return tot? Math.max(0,Math.min(100,v/tot*100)) : 0; }
+
+  box.innerHTML=
+  '<div class="hero2">'+
+
+    '<div class="h2-top">'+
+      '<div class="h2-commit">'+
+        '<div class="h2-k">Total to close</div>'+
+        '<div class="h2-n">'+money(TARGET)+'</div>'+
+        '<div class="h2-sub">'+money(TARGET_REC)+' deficit &nbsp;+&nbsp; '+money(TARGET_RUN)+' Sep–Dec</div>'+
+      '</div>'+
+      '<div class="h2-input">'+
+        '<label for="expTotal">Total revenue expected · everything in</label>'+
+        '<input type="number" min="0" id="expTotal" value="'+exp+'" placeholder="enter the figure you are working to">'+
+        '<div class="h2-hint">'+
+          (exp!==''
+            ? (exp>=TARGET
+                ? '<span class="ok">'+money(exp-TARGET)+' above the '+money(TARGET)+' commitment</span>'
+                : '<span class="bad">'+money(TARGET-exp)+' short of the '+money(TARGET)+' commitment</span>')
+            : 'Tracking runs against this once you set it')+
+        '</div>'+
       '</div>'+
     '</div>'+
-    '<div class="mh-fig run"><div class="mh-k">Run rate · Sep–Dec</div>'+
-      '<div class="mh-n">'+(r.run?money(r.run):'—')+'</div>'+
-      '<div class="mh-sub">'+(r.run? Math.round(r.run/TARGET_RUN*100)+'% of '+money(TARGET_RUN) : 'of '+money(TARGET_RUN))+'</div></div>'+
+
+    '<div class="h2-split">'+
+      '<div class="h2-block">'+
+        '<div class="h2-bk">Deficit &middot; to Aug</div>'+
+        '<div class="h2-bn">'+money(r.total)+'</div>'+
+        '<div class="h2-bar"><i class="a" style="width:'+seg(r.backed,TARGET_REC)+'%"></i>'+
+          '<i class="b" style="width:'+seg(r.forecast,TARGET_REC)+'%"></i></div>'+
+        '<div class="h2-lg">'+
+          '<span><i class="a"></i><b>'+money(r.backed)+'</b> real pipeline</span>'+
+          '<span><i class="b"></i><b>'+money(r.forecast)+'</b> forecast from cold bases</span>'+
+        '</div>'+
+        '<div class="h2-of">of '+money(TARGET_REC)+'</div>'+
+      '</div>'+
+
+      '<div class="h2-block">'+
+        '<div class="h2-bk">Sep &ndash; Dec</div>'+
+        '<div class="h2-bn run">'+money(r.run)+'</div>'+
+        '<div class="h2-bar"><i class="c" style="width:'+seg(r.sameq,TARGET_RUN)+'%"></i>'+
+          '<i class="d" style="width:'+seg(r.other,TARGET_RUN)+'%"></i></div>'+
+        '<div class="h2-lg">'+
+          '<span><i class="c"></i><b>'+money(r.sameq)+'</b> same-quarter conversion</span>'+
+          '<span><i class="d"></i><b>'+money(r.other)+'</b> other</span>'+
+        '</div>'+
+        '<div class="h2-of">of '+money(TARGET_RUN)+'</div>'+
+      '</div>'+
+    '</div>'+
+
+    '<div class="h2-foot">Identified so far <b>'+money(idTotal)+'</b> of '+money(TARGET)+
+      ' &nbsp;·&nbsp; '+Math.round(idTotal/TARGET*100)+'% has a named source</div>'+
   '</div>';
+
+  var inp=el('expTotal');
+  if(inp) inp.onchange=function(){
+    state.expected = inp.value===''? null : num(inp.value);
+    if(window.ADAP_DB && DB.mode==='cloud' && DB.saveExpected) DB.saveExpected(state.expected);
+    else save();
+    renderAll();
+  };
 }
 
 function renderMs(){
@@ -1197,6 +1254,11 @@ function renderMs(){
                   var lead=outVal(m.ord||i+1,'leads'), cv=outVal(m.ord||i+1,'conv');
                   if(lead&&cv) return '<span class="feeds">'+(cv/lead*100).toFixed(1)+'% converted last year</span>';
                   return '<span class="feeds forecast">Sets the historic conversion rate</span>';
+                }
+                if(f.runrev){
+                  var sq=outVal(m.ord||i+1,'sameq')||0, ot=outVal(m.ord||i+1,'other')||0, tot=sq+ot;
+                  if(!tot) return '<span class="feeds forecast">Counts toward the Sep–Dec '+money(TARGET_RUN)+'</span>';
+                  return '<span class="feeds">'+Math.round((f.k==='sameq'?sq:ot)/tot*100)+'% of the '+money(tot)+' identified · target '+money(TARGET_RUN)+'</span>';
                 }
                 if(f.revenue){
                   if(!mm) return '<span class="feeds">A forecast, not pipeline</span>';
@@ -1465,6 +1527,7 @@ el('fileIn').onchange=function(ev){
   var fr=new FileReader();
   fr.onload=function(){ try{ var d=JSON.parse(fr.result);
     state.start=d.start||''; state.entries=d.entries||[]; state.ms=(d.ms&&d.ms.length)?d.ms:freshMs();
+    state.expected=(d.expected===undefined||d.expected===null)?null:Number(d.expected);
     state.ms.forEach(function(m){
     if(m.dri===undefined) m.dri=m.owner||'';
     if(m.status===undefined) m.status=m.done?'done':'todo';
@@ -1479,7 +1542,7 @@ el('fileIn').onchange=function(ev){
 };
 el('btnReset').onclick=function(){
   if(!confirm('Clear all logged weeks and milestone ticks?')) return;
-  state.entries=[]; state.start=''; state.ms=freshMs();
+  state.entries=[]; state.start=''; state.ms=freshMs(); state.expected=null;
   save(); renderEntryRows(null); renderAll(); toast('Reset');
 };
 
@@ -1516,7 +1579,7 @@ function renderAcct(){
   }
 }
 
-var BUILD='2026-09-18 09:55 UTC';
+var BUILD='2026-09-18 10:20 UTC';
 function kmRow(label,value,sub,cls){
   return '<div class="kmr"><div class="kml">'+label+'</div>'+
     '<div class="kmv '+(cls||'')+'">'+value+'</div>'+
