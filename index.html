@@ -398,6 +398,8 @@ svg.chart{width:100%;height:auto;display:block}
 .kmhead span{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--mut2);margin-top:5px}
 .kmst{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.07em;white-space:nowrap;padding-top:3px}
 .kmst.good{color:var(--pos)} .kmst.slip,.kmst.behind{color:var(--warn)} .kmst.risk{color:var(--neg)} .kmst.idle{color:var(--mut2)}
+.kmwarn{margin-top:12px;padding:10px 13px;border:1px solid rgba(201,160,87,.35);border-left:3px solid var(--warn);
+  border-radius:7px;background:rgba(201,160,87,.06);font-size:11.5px;color:var(--ink2);line-height:1.5}
 .kmgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .kmr{background:var(--card);padding:14px 16px}
 .kmr:has(.v-actual){background:var(--card2)}
@@ -1577,7 +1579,7 @@ function renderAcct(){
   }
 }
 
-var BUILD='2026-09-18 10:53 UTC';
+var BUILD='2026-09-18 11:02 UTC';
 function kmRow(label,value,sub,cls){
   return '<div class="kmr"><div class="kml">'+label+'</div>'+
     '<div class="kmv '+(cls||'')+'">'+value+'</div>'+
@@ -1602,21 +1604,24 @@ function renderKpiBoard(){
   (function(){
     var scrub=outVal(1,'rev')||0, found=outVal(1,'pipe')||0;
     var carried=outVal(5,'other')||0, sameq=outVal(5,'sameq')||0;
-    var old=scrub+carried, exp=old+sameq;
+    var exp=scrub+sameq;                       /* carried is the same deals as the scrub — never added */
     var a=act(1), b=act(6), got=a.rev+b.rev, won=a.won+b.won;
     var sv=wk? sev(got, exp*frac) : {k:'idle',l:'NOT STARTED'};
+    var clash=(carried && Math.abs(carried-scrub)>1);
     cards.push({cls:sv.k, name:'ADAP revenue from old leads and Q4 same quarter',
       motion:'Motions 01 + 06 · deals already in play and new business that lands inside the quarter',
       rows:[
-        kmRow('From old leads', old?money(old):'—',
-          (scrub||carried)? money(scrub)+' scrubbed + '+money(carried)+' carried' : 'enter it on the milestones'),
+        kmRow('From old leads', scrub?money(scrub):'—',
+          found? 'from the '+money(found)+' scrubbed':'enter it on the scrub milestone'),
         kmRow('Q4 same-quarter conversion', sameq?money(sameq):'—',
           sameq&&exp? Math.round(sameq/exp*100)+'% of this bucket':'opens and closes inside Sep–Dec'),
-        kmRow('Expected in total', exp?money(exp):'—',
-          found? money(found)+' of pipeline behind the old leads':'old leads plus same quarter'),
+        kmRow('Expected in total', exp?money(exp):'—','old leads plus same quarter'),
         kmRow('Closed so far', money(got), won?won+' deals':'nothing logged yet','v-actual'),
         kmRow('Against expected', exp? Math.round(got/exp*100)+'%':'—', exp?'of '+money(exp):'—')
-      ], status:sv.l});
+      ],
+      warn: clash? 'Carried pipeline on the run-rate milestone reads '+money(carried)+
+            ', but the scrub says '+money(scrub)+'. They describe the same deals — only the scrub figure is counted here.' : null,
+      status:sv.l});
   })();
 
   /* ── 2 · the ELA + ADMP base ── */
@@ -1669,7 +1674,8 @@ function renderKpiBoard(){
     return '<div class="kmcard '+c.cls+'">'+
       '<div class="kmhead"><div><b>'+hl(c.name)+'</b><span>'+c.motion+'</span></div>'+
       '<span class="kmst '+c.cls+'">'+c.status+'</span></div>'+
-      '<div class="kmgrid">'+c.rows.join('')+'</div></div>';
+      '<div class="kmgrid">'+c.rows.join('')+'</div>'+
+      (c.warn? '<div class="kmwarn">'+esc(c.warn)+'</div>':'')+'</div>';
   }).join('');
 }
 
