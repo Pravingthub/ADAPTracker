@@ -195,12 +195,14 @@ select.st:focus{outline:none;border-color:var(--gold)}
 select.st.v-doing{color:var(--gold);border-color:rgba(217,164,65,.45)}
 select.st.v-blocked{color:var(--neg);border-color:rgba(199,108,94,.45)}
 select.st.v-done{color:var(--pos);border-color:rgba(111,169,122,.45)}
-.msgrid{display:grid;grid-template-columns:76px 1fr;gap:9px 12px;margin-top:13px;padding-top:12px;border-top:1px solid var(--line);align-items:center}
-.msgrid > label{margin:0;font-size:8.5px;align-self:center}
-.msgrid input[type=text],.msgrid input[type=date]{padding:6px 9px;font-size:12px}
-.msgrid .two{display:grid;grid-template-columns:1fr 150px;gap:9px}
+.msgrid{display:grid;grid-template-columns:86px minmax(0,1fr);gap:10px 14px;margin-top:14px;padding-top:13px;
+  border-top:1px solid var(--line);align-items:start}
+.msgrid > label{margin:0;font-size:8.5px;line-height:1.3;padding-top:9px;align-self:start;text-align:left}
+.msgrid input[type=text],.msgrid input[type=date]{padding:7px 10px;font-size:12.5px;height:32px}
+.msgrid .two{display:grid;grid-template-columns:minmax(0,1fr) 148px;gap:10px;align-items:center}
 .msgrid textarea{background:transparent;border:0;border-bottom:1px solid var(--line2);color:var(--ink2);
-  font-family:var(--sans);font-size:12.5px;line-height:1.55;padding:3px 0;resize:none;overflow:hidden;min-height:22px;width:100%;border-radius:0}
+  font-family:var(--sans);font-size:12.5px;line-height:1.5;padding:8px 0 7px;resize:none;overflow:hidden;
+  min-height:32px;width:100%;border-radius:0;display:block}
 .msgrid textarea:focus{outline:none;border-bottom-color:var(--gold);color:var(--ink)}
 .msgrid textarea::placeholder{color:#3C424C}
 .msgrid textarea{opacity:.55}
@@ -310,24 +312,24 @@ svg.chart{width:100%;height:auto;display:block}
   transition:transform .3s cubic-bezier(.2,.8,.2,1);z-index:99}
 .toast.on{transform:translateX(-50%) translateY(0)}
 /* ───── milestones hero ───── */
-.mshero{display:block;margin-bottom:22px;
+.mshero{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-bottom:18px;
   background:linear-gradient(135deg,rgba(217,164,65,.11),rgba(217,164,65,.02) 60%,transparent),var(--card2);
-  border:1px solid rgba(217,164,65,.3);border-radius:11px;padding:20px 24px;margin:0}
+  border:1px solid rgba(217,164,65,.3);border-radius:10px;padding:14px 18px;margin:0}
 .mshero.covered{background:linear-gradient(135deg,rgba(111,169,122,.12),rgba(111,169,122,.02) 60%,transparent),var(--card2);
   border-color:rgba(111,169,122,.35)}
-.mh-k{font-family:var(--mono);font-size:9.5px;letter-spacing:.15em;color:var(--mut);text-transform:uppercase}
-.mh-n{font-family:var(--mono);font-size:38px;font-weight:600;letter-spacing:-.04em;line-height:1;margin-top:11px;color:var(--gold)}
+.mh-k{font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;color:var(--mut2);text-transform:uppercase;white-space:nowrap}
+.mh-n{font-family:var(--mono);font-size:24px;font-weight:600;letter-spacing:-.035em;line-height:1;margin-top:6px;color:var(--gold);white-space:nowrap}
 .mshero.covered .mh-n{color:var(--pos)}
 
 
 
 
-.mh-bar{display:flex;height:7px;border-radius:4px;overflow:hidden;background:var(--line);margin-top:15px}
-.mh-bar i{display:block;height:7px}
+.mh-bar{display:flex;height:4px;border-radius:3px;overflow:hidden;background:var(--line);margin:0 0 9px;min-width:160px}
+.mh-bar i{display:block;height:4px}
 .mh-bar i.backed{background:var(--gold)}
 .mh-bar i.fore{background:rgba(217,164,65,.38)}
-.mh-lg{display:flex;gap:26px;flex-wrap:wrap;margin-top:14px;font-size:12.5px;color:var(--mut)}
-.mh-lg b{color:var(--ink);font-weight:600;font-family:var(--mono);font-size:13.5px;letter-spacing:-.02em}
+.mh-lg{display:flex;gap:20px;flex-wrap:wrap;font-size:11.5px;color:var(--mut)}
+.mh-lg b{color:var(--ink);font-weight:600;font-family:var(--mono);font-size:12px;letter-spacing:-.02em}
 .mh-lg span{display:flex;align-items:center;gap:9px}
 .mh-lg i{width:9px;height:9px;border-radius:2px;display:block}
 .mh-lg i.backed{background:var(--gold)} .mh-lg i.fore{background:rgba(217,164,65,.38)}
@@ -335,20 +337,24 @@ svg.chart{width:100%;height:auto;display:block}
 
 
 
-@media(max-width:560px){.mh-lg{gap:14px}}
+.mh-fig{flex:none;padding-right:22px;border-right:1px solid var(--line2)}
+.mh-body{flex:1;min-width:210px}
+@media(max-width:620px){.mshero{gap:14px}.mh-fig{border-right:0;padding-right:0}.mh-lg{gap:14px}}
 
 /* ───── milestone outputs ───── */
 .outs{margin-top:13px;padding-top:12px;border-top:1px solid var(--line)}
 .outh{font-family:var(--mono);font-size:9px;letter-spacing:.13em;color:var(--mut);text-transform:uppercase;margin-bottom:11px}
 .outh span{text-transform:none;letter-spacing:.02em;color:var(--mut2);margin-left:10px;font-size:9.5px}
-.outg{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:11px}
-.outf label{font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;color:#4E5665;margin-bottom:6px}
+.outg{display:grid;grid-template-columns:repeat(auto-fit,minmax(152px,1fr));gap:13px;align-items:start}
+.outf{display:flex;flex-direction:column}
+.outf label{font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;color:#4E5665;margin-bottom:7px;
+  line-height:1.35;min-height:2.7em;display:flex;align-items:flex-end}
 .outf input{padding:9px 11px;font-size:16px;font-weight:600;letter-spacing:-.02em;color:var(--ink);
   background:var(--bg);border-color:var(--line)}
 .outf input:focus{border-color:var(--gold)}
 .outf.money input{color:var(--gold)}
 .outf input::placeholder{font-weight:400;color:#3C424C}
-.outf .feeds{display:block;font-family:var(--sans);font-size:10px;color:var(--mut);margin-top:7px;line-height:1.45;letter-spacing:0}
+.outf .feeds{display:block;font-family:var(--sans);font-size:10px;color:var(--mut);margin-top:7px;line-height:1.45;letter-spacing:0;min-height:1px}
 .outf .feeds b{color:var(--gold);font-weight:600}
 .outf .feeds.forecast{color:var(--mut)}
 @media(max-width:600px){.outg{grid-template-columns:1fr 1fr}}
@@ -1051,13 +1057,15 @@ function renderMsHero(){
   var pc=Math.min(100,r.total/TARGET*100);
   var bp=r.total? r.backed/r.total*100 : 0;
   box.innerHTML='<div class="mshero'+(r.total>=TARGET?' covered':'')+'">'+
-    '<div class="mh-k">Revenue identified</div>'+
-    '<div class="mh-n">'+money(r.total)+'</div>'+
-    '<div class="mh-bar"><i class="backed" style="width:'+(pc*bp/100)+'%"></i>'+
-      '<i class="fore" style="width:'+(pc*(100-bp)/100)+'%"></i></div>'+
-    '<div class="mh-lg">'+
-      '<span><i class="backed"></i><b>'+money(r.backed)+'</b> from real pipeline</span>'+
-      '<span><i class="fore"></i><b>'+money(r.forecast)+'</b> forecast from cold bases</span>'+
+    '<div class="mh-fig"><div class="mh-k">Revenue identified</div>'+
+      '<div class="mh-n">'+money(r.total)+'</div></div>'+
+    '<div class="mh-body">'+
+      '<div class="mh-bar"><i class="backed" style="width:'+(pc*bp/100)+'%"></i>'+
+        '<i class="fore" style="width:'+(pc*(100-bp)/100)+'%"></i></div>'+
+      '<div class="mh-lg">'+
+        '<span><i class="backed"></i><b>'+money(r.backed)+'</b> from real pipeline</span>'+
+        '<span><i class="fore"></i><b>'+money(r.forecast)+'</b> forecast from cold bases</span>'+
+      '</div>'+
     '</div>'+
   '</div>';
 }
@@ -1476,7 +1484,7 @@ function renderAcct(){
   }
 }
 
-var BUILD='2026-09-18 09:13 UTC';
+var BUILD='2026-09-18 09:18 UTC';
 function kmRow(label,value,sub,cls){
   return '<div class="kmr"><div class="kml">'+label+'</div>'+
     '<div class="kmv '+(cls||'')+'">'+value+'</div>'+
