@@ -595,7 +595,7 @@ var MOTIONS=[
  {id:3,name:'Deals above $10,000',     owner:'SS + AM',         rev:58000, pipe:181250},
  {id:4,name:'Support-sourced',         owner:'Support → owner', rev:25000, pipe:78125},
  {id:5,name:'Organic leads we do get', owner:'AM',              rev:35170, pipe:109906},
- {id:6,name:'Run rate · Sep–Dec',       owner:'SS + AM',         rev:200000, pipe:625000, run:true}
+ {id:6,name:'Run rate · Sep–Dec',       owner:'SS + AM',         rev:577000, pipe:1803125, run:true}
 ];
 var RECOVERY=MOTIONS.filter(function(m){return !m.run;});
 var RUNLINE=MOTIONS.filter(function(m){return m.run;});
@@ -1516,7 +1516,7 @@ function renderAcct(){
   }
 }
 
-var BUILD='2026-09-18 09:45 UTC';
+var BUILD='2026-09-18 09:55 UTC';
 function kmRow(label,value,sub,cls){
   return '<div class="kmr"><div class="kml">'+label+'</div>'+
     '<div class="kmv '+(cls||'')+'">'+value+'</div>'+
