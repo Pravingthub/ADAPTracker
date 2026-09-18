@@ -309,14 +309,45 @@ svg.chart{width:100%;height:auto;display:block}
   font-family:var(--mono);font-size:11.5px;font-weight:600;padding:11px 19px;border-radius:7px;
   transition:transform .3s cubic-bezier(.2,.8,.2,1);z-index:99}
 .toast.on{transform:translateX(-50%) translateY(0)}
+/* ───── milestones hero ───── */
+.mshero{display:grid;grid-template-columns:1fr auto;gap:26px;align-items:center;
+  background:linear-gradient(135deg,rgba(217,164,65,.11),rgba(217,164,65,.02) 60%,transparent),var(--card2);
+  border:1px solid rgba(217,164,65,.3);border-radius:11px;padding:20px 24px;margin:0 0 22px}
+.mshero.covered{background:linear-gradient(135deg,rgba(111,169,122,.12),rgba(111,169,122,.02) 60%,transparent),var(--card2);
+  border-color:rgba(111,169,122,.35)}
+.mh-k{font-family:var(--mono);font-size:9.5px;letter-spacing:.15em;color:var(--mut);text-transform:uppercase}
+.mh-n{font-family:var(--mono);font-size:38px;font-weight:600;letter-spacing:-.04em;line-height:1;margin-top:11px;color:var(--gold)}
+.mshero.covered .mh-n{color:var(--pos)}
+.mh-s{font-size:13px;color:var(--mut);margin-top:10px}
+.mh-s b{color:var(--ink2);font-weight:600}
+.mh-s .short{color:var(--neg);font-weight:600}
+.mh-s .over{color:var(--pos);font-weight:600}
+.mh-bar{display:flex;height:7px;border-radius:4px;overflow:hidden;background:var(--line);margin-top:15px}
+.mh-bar i{display:block;height:7px}
+.mh-bar i.backed{background:var(--gold)}
+.mh-bar i.fore{background:rgba(217,164,65,.38)}
+.mh-lg{display:flex;gap:18px;flex-wrap:wrap;margin-top:11px;font-family:var(--mono);font-size:10.5px;color:var(--mut)}
+.mh-lg span{display:flex;align-items:center;gap:7px}
+.mh-lg i{width:9px;height:9px;border-radius:2px;display:block}
+.mh-lg i.backed{background:var(--gold)} .mh-lg i.fore{background:rgba(217,164,65,.38)}
+.mh-r{display:flex;flex-direction:column;gap:14px;text-align:right}
+.mh-stat b{display:block;font-family:var(--mono);font-size:19px;font-weight:600;letter-spacing:-.03em;color:var(--ink)}
+.mh-stat span{display:block;font-size:10.5px;color:var(--mut2);margin-top:4px}
+@media(max-width:760px){.mshero{grid-template-columns:1fr;gap:18px}.mh-r{flex-direction:row;gap:26px;text-align:left}}
+
 /* ───── milestone outputs ───── */
 .outs{margin-top:13px;padding-top:12px;border-top:1px solid var(--line)}
 .outh{font-family:var(--mono);font-size:9px;letter-spacing:.13em;color:var(--mut);text-transform:uppercase;margin-bottom:11px}
 .outh span{text-transform:none;letter-spacing:.02em;color:var(--mut2);margin-left:10px;font-size:9.5px}
 .outg{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:11px}
-.outf label{font-family:var(--mono);font-size:8.5px;letter-spacing:.09em;color:var(--mut2);margin-bottom:5px}
-.outf input{padding:7px 9px;font-size:12.5px}
-.outf .feeds{display:block;font-family:var(--sans);font-size:10px;color:var(--gold);margin-top:5px;line-height:1.4;letter-spacing:0}
+.outf label{font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;color:#4E5665;margin-bottom:6px}
+.outf input{padding:9px 11px;font-size:16px;font-weight:600;letter-spacing:-.02em;color:var(--ink);
+  background:var(--bg);border-color:var(--line)}
+.outf input:focus{border-color:var(--gold)}
+.outf.money input{color:var(--gold)}
+.outf input::placeholder{font-weight:400;color:#3C424C}
+.outf .feeds{display:block;font-family:var(--sans);font-size:10px;color:var(--mut);margin-top:7px;line-height:1.45;letter-spacing:0}
+.outf .feeds b{color:var(--gold);font-weight:600}
 .outf .feeds.forecast{color:var(--mut)}
 @media(max-width:600px){.outg{grid-template-columns:1fr 1fr}}
 
@@ -343,10 +374,12 @@ svg.chart{width:100%;height:auto;display:block}
 .kmst{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.07em;white-space:nowrap;padding-top:3px}
 .kmst.good{color:var(--pos)} .kmst.slip,.kmst.behind{color:var(--warn)} .kmst.risk{color:var(--neg)} .kmst.idle{color:var(--mut2)}
 .kmgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.kmr{background:var(--card);padding:13px 15px}
-.kml{font-family:var(--mono);font-size:9px;letter-spacing:.11em;color:var(--mut2);text-transform:uppercase}
-.kmv{font-family:var(--mono);font-size:19px;font-weight:600;letter-spacing:-.03em;margin-top:10px;line-height:1;color:var(--ink2)}
-.kmv.v-actual{color:var(--gold)}
+.kmr{background:var(--card);padding:14px 16px}
+.kmr:has(.v-actual){background:var(--card2)}
+.kml{font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;color:#4E5665;text-transform:uppercase}
+.kmv{font-family:var(--mono);font-size:17px;font-weight:600;letter-spacing:-.03em;margin-top:10px;line-height:1;color:var(--ink2)}
+.kmv.v-actual{font-size:24px;color:var(--gold)}
+
 .kms{font-size:10.5px;color:var(--mut2);margin-top:8px;line-height:1.4;min-height:15px}
 @media(max-width:640px){.kmgrid{grid-template-columns:1fr 1fr}}
 
@@ -418,6 +451,7 @@ svg.chart{width:100%;height:auto;display:block}
         <div class="card">
           <h2>Milestone completion</h2>
           <p class="sub">Four setup actions. Everything after them is measured on the KPIs tab, not ticked here.</p>
+          <div id="msHero"></div>
           <div class="rings" id="dashRings"></div>
         </div>
         <div class="card">
@@ -605,6 +639,20 @@ var OUTPUTS={
 };
 function motionById(id){ var f=null; MOTIONS.forEach(function(m){ if(m.id===id) f=m; }); return f; }
 /* every output flagged as pipeline, summed, so coverage reflects what we have identified */
+function msRevenueSplit(){
+  var backed=0, forecast=0, parts=[];
+  Object.keys(OUTPUTS).forEach(function(ord){
+    OUTPUTS[ord].fields.forEach(function(f){
+      if(!f.revenue) return;
+      var v=outVal(Number(ord),f.k)||0;
+      if(!v) return;
+      if(f.backed) backed+=v; else forecast+=v;
+      var mm=msByOrd(Number(ord));
+      parts.push({name:mm?mm.text:'', value:v, backed:!!f.backed});
+    });
+  });
+  return {backed:backed, forecast:forecast, total:backed+forecast, parts:parts};
+}
 function msRevenueExpected(motionId){
   var total=0;
   Object.keys(OUTPUTS).forEach(function(ord){
@@ -994,6 +1042,34 @@ function autoGrow(t){ t.style.height='auto'; t.style.height=t.scrollHeight+'px';
 function driOf(m){ return (m.dri||m.owner||'').trim(); }
 function isLate(m,today){ return m.status!=='done' && m.due && Math.round((new Date(m.due+'T00:00:00')-today)/864e5)<0; }
 
+function renderMsHero(){
+  var box=el('msHero'); if(!box) return;
+  var r=msRevenueSplit(), pipe=msPipeline().total;
+  if(!r.total){ box.innerHTML=''; return; }
+  var pc=Math.min(100,r.total/TARGET*100);
+  var gap=TARGET-r.total;
+  var bp=r.total? r.backed/r.total*100 : 0;
+  box.innerHTML='<div class="mshero'+(gap<=0?' covered':'')+'">'+
+    '<div class="mh-l">'+
+      '<div class="mh-k">Identified so far</div>'+
+      '<div class="mh-n">'+money(r.total)+'</div>'+
+      '<div class="mh-s">of <b>'+money(TARGET)+'</b> · '+
+        (gap>0? '<span class="short">'+money(gap)+' still unaccounted for</span>'
+              : '<span class="over">'+money(-gap)+' above the commitment</span>')+'</div>'+
+      '<div class="mh-bar"><i class="backed" style="width:'+(pc*bp/100)+'%"></i>'+
+        '<i class="fore" style="width:'+(pc*(100-bp)/100)+'%"></i></div>'+
+      '<div class="mh-lg">'+
+        '<span><i class="backed"></i>'+money(r.backed)+' backed by pipeline</span>'+
+        '<span><i class="fore"></i>'+money(r.forecast)+' forecast</span>'+
+      '</div>'+
+    '</div>'+
+    '<div class="mh-r">'+
+      '<div class="mh-stat"><b>'+money(pipe)+'</b><span>real pipeline found</span></div>'+
+      '<div class="mh-stat"><b>'+Math.round(pc)+'%</b><span>of the commitment</span></div>'+
+    '</div>'+
+  '</div>';
+}
+
 function renderMs(){
   var today=new Date(); today.setHours(0,0,0,0);
   var c={todo:0,doing:0,blocked:0,done:0}, late=0, by={};
@@ -1074,7 +1150,7 @@ function renderMs(){
         return '<div class="outs"><div class="outh">'+o.title+
           '<span>numbers here feed the KPI board</span></div><div class="outg">'+
           o.fields.map(function(f){
-            return '<div class="outf"><label>'+f.l+'</label>'+
+            return '<div class="outf'+(f.t==='$'?' money':'')+'"><label>'+f.l+'</label>'+
               '<input type="number" min="0" data-out="'+i+'" data-k="'+f.k+'" value="'+(mv[f.k]!==undefined&&mv[f.k]!==null?mv[f.k]:'')+'" placeholder="'+(f.t==='$'?'$':'0')+'">'+
               (function(){
                 if(f.feeds) return '<span class="feeds">'+f.feeds+'</span>';
@@ -1084,7 +1160,7 @@ function renderMs(){
                   if(!mm) return '<span class="feeds">Adds to pipeline built and coverage</span>';
                   var pc=Math.round(got/mm.pipe*100);
                   return '<span class="feeds">Real pipeline · motion 0'+mm.id+' needs '+money(mm.pipe)+
-                    (got? ' · this covers '+pc+'%' : '')+'</span>';
+                    (got? ' · <b>covers '+pc+'%</b>' : '')+'</span>';
                 }
                 if(f.k==='conv'){
                   var lead=outVal(m.ord||i+1,'leads'), cv=outVal(m.ord||i+1,'conv');
@@ -1097,10 +1173,10 @@ function renderMs(){
                   if(f.backed){
                     var pf=outVal(m.ord||i+1,'pipe');
                     return '<span class="feeds">Backed by'+(pf?' the '+money(pf)+' found':' real pipeline')+
-                      ' · motion 0'+mm.id+' targets '+money(mm.rev)+(got? ' · this covers '+rc+'%' : '')+'</span>';
+                      ' · motion 0'+mm.id+' targets '+money(mm.rev)+(got? ' · <b>covers '+rc+'%</b>' : '')+'</span>';
                   }
                   return '<span class="feeds forecast">Forecast, not pipeline · motion 0'+mm.id+' targets '+money(mm.rev)+
-                    (got? ' · this covers '+rc+'%' : '')+'</span>';
+                    (got? ' · <b>covers '+rc+'%</b>' : '')+'</span>';
                 }
                 return '';
               })()+'</div>';
@@ -1109,6 +1185,7 @@ function renderMs(){
     '</div>';
   });
   el('msList').innerHTML=h||'<div class="empty">Nothing matches that filter.</div>';
+  renderMsHero();
 
   var fq=el('msFilters');
   [].forEach.call(fq.querySelectorAll('[data-st]'),function(x){
@@ -1407,7 +1484,7 @@ function renderAcct(){
   }
 }
 
-var BUILD='2026-09-18 08:38 UTC';
+var BUILD='2026-09-18 08:56 UTC';
 function kmRow(label,value,sub,cls){
   return '<div class="kmr"><div class="kml">'+label+'</div>'+
     '<div class="kmv '+(cls||'')+'">'+value+'</div>'+
