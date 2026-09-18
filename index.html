@@ -314,6 +314,7 @@ svg.chart{width:100%;height:auto;display:block}
 .outf label{font-family:var(--mono);font-size:8.5px;letter-spacing:.09em;color:var(--mut2);margin-bottom:5px}
 .outf input{padding:7px 9px;font-size:12.5px}
 .outf .feeds{display:block;font-family:var(--sans);font-size:10px;color:var(--gold);margin-top:5px;line-height:1.4;letter-spacing:0}
+.outf .feeds.forecast{color:var(--mut)}
 @media(max-width:600px){.outg{grid-template-columns:1fr 1fr}}
 
 /* ───── milestone ⇄ KPI link ───── */
@@ -576,13 +577,25 @@ var OUTPUTS={
     {k:'pipe', l:'Pipeline found',    t:'$', pipeline:true, motion:1}
   ]},
   2:{title:'The addressable base', motion:2, fields:[
-    {k:'ela', l:'ELA customers without ADAP',  t:'n'},
-    {k:'admp',l:'ADMP customers without ADAP', t:'n', feeds:'Sets the denominator for named accounts worked'},
-    {k:'pipe',l:'Pipeline expected from this base', t:'$', pipeline:true, motion:2}
+    {k:'ela',   l:'ELA customers without ADAP',  t:'n'},
+    {k:'admp',  l:'ADMP customers without ADAP', t:'n'},
+    {k:'unique',l:'Unique accounts after overlap',t:'n', feeds:'Sets the denominator for named accounts worked'},
+    {k:'rev',   l:'Revenue expected from outreach', t:'$', revenue:true, motion:2}
   ]}
 };
 function motionById(id){ var f=null; MOTIONS.forEach(function(m){ if(m.id===id) f=m; }); return f; }
 /* every output flagged as pipeline, summed, so coverage reflects what we have identified */
+function msRevenueExpected(motionId){
+  var total=0;
+  Object.keys(OUTPUTS).forEach(function(ord){
+    OUTPUTS[ord].fields.forEach(function(f){
+      if(!f.revenue) return;
+      if(motionId && f.motion!==motionId) return;
+      total+=outVal(Number(ord),f.k)||0;
+    });
+  });
+  return total;
+}
 function msPipeline(){
   var total=0, parts=[];
   Object.keys(OUTPUTS).forEach(function(ord){
@@ -600,6 +613,8 @@ function outVal(ord,key){
   return (m && m.out && m.out[key]!==undefined && m.out[key]!=='') ? Number(m.out[key]) : null;
 }
 function addressableBase(){
+  var u=outVal(2,'unique');
+  if(u!==null) return u;
   var a=outVal(2,'ela'), b=outVal(2,'admp');
   if(a===null && b===null) return null;
   return (a||0)+(b||0);
@@ -1035,13 +1050,21 @@ function renderMs(){
               '<input type="number" min="0" data-out="'+i+'" data-k="'+f.k+'" value="'+(mv[f.k]!==undefined&&mv[f.k]!==null?mv[f.k]:'')+'" placeholder="'+(f.t==='$'?'$':'0')+'">'+
               (function(){
                 if(f.feeds) return '<span class="feeds">'+f.feeds+'</span>';
-                if(!f.pipeline) return '';
                 var mm=motionById(f.motion);
-                if(!mm) return '<span class="feeds">Adds to pipeline built and coverage</span>';
                 var got=outVal(m.ord||i+1,f.k)||0;
-                var pc=Math.round(got/mm.pipe*100);
-                return '<span class="feeds">Motion 0'+mm.id+' needs '+money(mm.pipe)+
-                  (got? ' · this covers '+pc+'%' : '')+'</span>';
+                if(f.pipeline){
+                  if(!mm) return '<span class="feeds">Adds to pipeline built and coverage</span>';
+                  var pc=Math.round(got/mm.pipe*100);
+                  return '<span class="feeds">Real pipeline · motion 0'+mm.id+' needs '+money(mm.pipe)+
+                    (got? ' · this covers '+pc+'%' : '')+'</span>';
+                }
+                if(f.revenue){
+                  if(!mm) return '<span class="feeds">A forecast, not pipeline</span>';
+                  var rc=Math.round(got/mm.rev*100);
+                  return '<span class="feeds forecast">Forecast, not pipeline · motion 0'+mm.id+' targets '+money(mm.rev)+
+                    (got? ' · this covers '+rc+'%' : '')+'</span>';
+                }
+                return '';
               })()+'</div>';
           }).join('')+'</div></div>';
       })()+
@@ -1346,7 +1369,7 @@ function renderAcct(){
   }
 }
 
-var BUILD='2026-09-18 07:41 UTC';
+var BUILD='2026-09-18 07:58 UTC';
 function kcard(o){
   /* o: {name, who, value, baseline, target, status, pct, na} */
   var st=o.status||'idle';
@@ -1435,8 +1458,10 @@ function renderKpiBoard(){
   var h3='';
   var accSt=starterState(4);
   var base=addressableBase();
+  var fc=msRevenueExpected(2);
   h3+=kcard({name:'Named accounts worked',
-    who:'AM1 + SS · weekly'+(base? ' · '+base.toLocaleString('en-US')+' in the base':''), startedBy:accSt,
+    who:'AM1 + SS · weekly'+(base? ' · '+base.toLocaleString('en-US')+' unique accounts':'')+
+        (fc? ' · '+money(fc)+' forecast':''), startedBy:accSt,
     value:(k.acctPerWeek===null?'—':Math.round(k.acctPerWeek)+' /wk'),
     baseline:'—', target:BASE.weeklyAccounts.target+' /wk',
     status:acctSev.k, statusText:acctSev.l,
