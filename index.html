@@ -177,7 +177,10 @@ main{min-width:0;overflow-x:clip}
 .mscard.no-dri .msgrid input[data-dri]{border-color:rgba(201,160,87,.45)}
 .mshead{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
 .mshead .txt{flex:1 1 240px;min-width:0;text-align:left}
-.mshead .txt{font-size:14.5px;font-weight:600;line-height:1.4;letter-spacing:-.014em;color:var(--ink2);order:-1}
+.mshead .txt{font-size:14.5px;font-weight:500;line-height:1.4;letter-spacing:-.014em;color:var(--mut);order:-1}
+.mshead .txt .hl{font-style:normal;font-weight:700;color:var(--ink)}
+.mshead .txt .hl.num{color:var(--gold);font-family:var(--mono);font-size:.94em}
+.mscard.st-done .mshead .txt .hl{color:var(--mut2)}
 .mscard.st-blocked .mshead .txt,.mscard.is-late .mshead .txt{color:#fff}
 .mscard.st-done .mshead .txt{color:var(--mut2);text-decoration:line-through}
 .mscard.st-done .mshead .txt{color:var(--mut)}
@@ -328,6 +331,25 @@ svg.chart{width:100%;height:auto;display:block}
 .kc .startedby.off{color:var(--warn)}
 
 /* ───── KPI board ───── */
+.kmcard{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:17px 19px;margin-bottom:12px;position:relative;overflow:hidden}
+.kmcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--line2)}
+.kmcard.good::before{background:var(--pos)} .kmcard.slip::before,.kmcard.behind::before{background:var(--warn)}
+.kmcard.risk::before{background:var(--neg)}
+.kmhead{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.kmhead b{display:block;font-size:15px;font-weight:500;letter-spacing:-.016em;color:var(--mut);line-height:1.3}
+.kmhead b .hl{font-style:normal;font-weight:700;color:var(--ink)}
+.kmhead b .hl.num{color:var(--gold);font-family:var(--mono);font-size:.94em}
+.kmhead span{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--mut2);margin-top:5px}
+.kmst{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.07em;white-space:nowrap;padding-top:3px}
+.kmst.good{color:var(--pos)} .kmst.slip,.kmst.behind{color:var(--warn)} .kmst.risk{color:var(--neg)} .kmst.idle{color:var(--mut2)}
+.kmgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.kmr{background:var(--card);padding:13px 15px}
+.kml{font-family:var(--mono);font-size:9px;letter-spacing:.11em;color:var(--mut2);text-transform:uppercase}
+.kmv{font-family:var(--mono);font-size:19px;font-weight:600;letter-spacing:-.03em;margin-top:10px;line-height:1;color:var(--ink2)}
+.kmv.v-actual{color:var(--gold)}
+.kms{font-size:10.5px;color:var(--mut2);margin-top:8px;line-height:1.4;min-height:15px}
+@media(max-width:640px){.kmgrid{grid-template-columns:1fr 1fr}}
+
 .kgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(248px,1fr));gap:12px}
 .kc{background:var(--card2);border:1px solid var(--line);border-radius:9px;padding:15px 17px;position:relative;overflow:hidden}
 .kc::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--line2)}
@@ -453,19 +475,9 @@ svg.chart{width:100%;height:auto;display:block}
       <!-- KPIs -->
       <section class="pane" id="p-kpi">
         <div class="card">
-          <h2>Tier 1 · Outcome</h2>
-          <p class="sub">What leadership judges. Reviewed monthly — lags by design.</p>
-          <div class="kgrid" id="kT1"></div>
-        </div>
-        <div class="card">
-          <h2>Tier 2 · Leading indicators</h2>
-          <p class="sub">These move four to six weeks before revenue does. Baselines are Jan–Aug actuals.</p>
-          <div class="kgrid" id="kT2"></div>
-        </div>
-        <div class="card">
-          <h2>Tier 3 · Activity</h2>
-          <p class="sub">What the teams control directly. If Tier 2 slips, the cause is here.</p>
-          <div class="kgrid" id="kT3"></div>
+          <h2>What each milestone promised, and what is landing</h2>
+          <p class="sub">One card per milestone. The promise comes from the numbers you entered there; the actual comes from the weekly log.</p>
+          <div id="kBoard"></div>
         </div>
       </section>
 
@@ -726,6 +738,14 @@ function okDate(v){
 }
 function money(n){ return '$'+Math.round(n).toLocaleString('en-US'); }
 function el(id){ return document.getElementById(id); }
+function hl(t){
+  /* escape first, then lift the terms that carry the meaning */
+  var x=esc(t);
+  x=x.replace(/\b(ADAP|ELA|ADMP|DRI|AM|SS|KPI)\b/g,'<em class="hl">$1</em>');
+  x=x.replace(/(\$[\d,]+(?:\.\d+)?[KMkm]?)/g,'<em class="hl num">$1</em>');
+  x=x.replace(/\b(\d[\d,]*%?)\b/g,'<em class="hl num">$1</em>');
+  return x;
+}
 function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
 function num(v){ var n=parseFloat(String(v).replace(/[^0-9.\-]/g,'')); return isNaN(n)?0:n; }
 function toast(m){ var t=el('toast'); t.textContent=m; t.classList.add('on'); setTimeout(function(){t.classList.remove('on');},1800); }
@@ -1031,7 +1051,7 @@ function renderMs(){
     var opts=ST.map(function(x){ return '<option value="'+x[0]+'"'+(m.status===x[0]?' selected':'')+'>'+x[1]+'</option>'; }).join('');
     h+='<div class="mscard st-'+m.status+(lt?' is-late':'')+(soon?' is-soon':'')+(noDri?' no-dri':'')+'">'+
       '<div class="mshead"><select class="st v-'+m.status+'" data-st2="'+i+'">'+opts+'</select>'+
-      '<div class="txt">'+esc(m.text)+'</div>'+flag+'</div>'+
+      '<div class="txt">'+hl(m.text)+'</div>'+flag+'</div>'+
       (function(){
         var sp=starterFor(m.ord||i+1);
         if(!sp) return '';
@@ -1381,116 +1401,94 @@ function renderAcct(){
   }
 }
 
-var BUILD='2026-09-18 08:05 UTC';
-function kcard(o){
-  /* o: {name, who, value, baseline, target, status, pct, na} */
-  var st=o.status||'idle';
-  return '<div class="kc '+st+'">'+
-    '<div class="kn">'+o.name+'</div>'+
-    '<div class="kw">'+o.who+'</div>'+
-    (o.na
-      ? '<div class="kv na">Not tracked yet</div><div class="note-na">'+o.na+'</div>'
-      : '<div class="kv">'+o.value+'</div>'+
-        (o.pct===null?'':'<div class="ktrk"><i style="width:'+Math.max(0,Math.min(100,o.pct))+'%"></i></div>')+
-        '<div class="krow"><span>Baseline'+(o.baseline?'<b>'+o.baseline+'</b>':'<b>&mdash;</b>')+'</span>'+
-        '<span style="text-align:right">Target<b>'+o.target+'</b></span></div>'+
-        '<div class="kst '+st+'">'+(o.statusText||'')+'</div>')+
-    (o.startedBy? '<div class="startedby'+(o.startedBy.on?'':' off')+'">'+
-      (o.startedBy.on?'✓ ':'○ ')+esc(o.startedBy.text)+'</div>' : '')+
-  '</div>';
-}
-function pctSev(actual,target,higherIsBetter){
-  if(actual===null||actual===undefined) return {k:'idle',l:'NO DATA YET'};
-  var ratio = higherIsBetter ? actual/target : target/actual;
-  if(ratio>=1) return {k:'good',l:'AT OR ABOVE TARGET'};
-  var gap=Math.round((1-ratio)*100);
-  if(gap<=10) return {k:'slip',l:'SLIPPING · '+gap+'%'};
-  if(gap<=25) return {k:'behind',l:'BEHIND · '+gap+'%'};
-  return {k:'risk',l:'AT RISK · '+gap+'%'};
+var BUILD='2026-09-18 08:17 UTC';
+function kmRow(label,value,sub,cls){
+  return '<div class="kmr"><div class="kml">'+label+'</div>'+
+    '<div class="kmv '+(cls||'')+'">'+value+'</div>'+
+    (sub?'<div class="kms">'+sub+'</div>':'<div class="kms"></div>')+'</div>';
 }
 function renderKpiBoard(){
-  var k=kpis(), t=totals(), wk=state.entries.length?weekNo():0;
-  var exp=wk?TARGET*Math.min(1,wk/WEEKS):0;
-  var svR=sev(t.R,exp);
+  var wk=state.entries.length?weekNo():0;
+  var frac=wk?Math.min(1,wk/WEEKS):0;
+  var t=totals();
 
-  /* ── Tier 1 ── */
-  el('kT1').innerHTML=
-    kcard({name:'ADAP revenue recovered',who:'SS + AM1 · monthly',
-      value:money(t.R), baseline:'$0', target:money(TARGET),
-      status:svR.k, statusText:(wk?svR.l:'NOT STARTED'), pct:t.R/TARGET*100})+
-    kcard({name:'Recovery pace',who:'against the line to day 90 · monthly',
-      value:(wk? (exp>0?Math.round(t.R/exp*100):0)+'%' : '—'),
-      baseline:'100%', target:'90–110%',
-      status:svR.k, statusText:(wk? 'Needed by now '+money(exp) : 'NOT STARTED'),
-      pct:(exp>0?Math.min(100,t.R/exp*100):0)});
+  /* actual revenue and pipeline per motion, from the weekly log */
+  function act(mid){
+    var r=0,p=0,w=0,o=0;
+    state.entries.forEach(function(e){ var c=e.m[mid]; if(!c) return;
+      r+=(c.rev||0); p+=(c.pipe||0); w+=(c.won||0); o+=(c.opened||0); });
+    return {rev:r,pipe:p,won:w,opened:o};
+  }
+  var acctTot=0,acctWeeks=0;
+  state.entries.forEach(function(e){ if(e.acct){acctTot+=e.acct;acctWeeks++;} });
 
-  /* ── Tier 2 ── */
-  var wl=Math.max(1,WEEKS-wk);
-  var pipeWeek=k.weeks? k.pipe/k.weeks : null;
-  var pipeSev=pipeWeek===null?{k:'idle',l:'NO DATA YET'}:pctSev(pipeWeek,PIPE_TARGET/WEEKS,true);
-  var covSev=k.coverage===null?{k:'idle',l:'NO DATA YET'}:pctSev(k.coverage,BASE.coverage.target,true);
-  var dsSev=k.dealSize===null?{k:'idle',l:''}:pctSev(k.dealSize,BASE.dealSize.target,true);
-  var crSev=k.closeRate===null?{k:'idle',l:''}:pctSev(k.closeRate,BASE.closeRate.target,true);
-  var ocSev=k.organicConv===null?{k:'idle',l:''}:pctSev(k.organicConv,BASE.organicConv.target,true);
+  var cards=[];
 
-  el('kT2').innerHTML=
-    kcard({name:'Qualified pipeline created',
-      who:'SS + AM1 · weekly'+(k.extraPipe? ' · incl. '+money(k.extraPipe)+' identified in milestones':''),
-      value:(pipeWeek===null?'—':money(Math.round(pipeWeek))+' /wk'),
-      baseline:'—', target:money(Math.round(PIPE_TARGET/WEEKS))+' /wk',
-      status:pipeSev.k, statusText:pipeSev.l,
-      pct:pipeWeek===null?0:pipeWeek/(PIPE_TARGET/WEEKS)*100})+
-    kcard({name:'Pipeline coverage',who:'pipeline ÷ revenue still to find · weekly',
-      value:(k.coverage===null?'—':k.coverage.toFixed(1)+'×'),
-      baseline:'—', target:BASE.coverage.target.toFixed(1)+'×',
-      status:covSev.k, statusText:covSev.l,
-      pct:k.coverage===null?0:k.coverage/BASE.coverage.target*100,
-      na:k.coverage===null?'Builds as pipeline is logged. Below 2× and the target is arithmetic, not effort.':null})+
-    kcard({name:'Average deal size',who:'all motions · weekly',
-      value:(k.dealSize===null?'—':money(Math.round(k.dealSize))),
-      baseline:money(BASE.dealSize.y26)+' (2026)', target:money(BASE.dealSize.target),
-      status:dsSev.k, statusText:dsSev.l||'NO DEALS LOGGED YET',
-      pct:k.dealSize===null?0:k.dealSize/BASE.dealSize.target*100,
-      na:k.dealSize===null?'Log deals won alongside revenue and this fills in. 2025 was '+money(BASE.dealSize.y25)+', 2026 to date '+money(BASE.dealSize.y26)+'.':null})+
-    kcard({name:'Close rate',who:'deals won ÷ deals opened · weekly',
-      value:(k.closeRate===null?'—':k.closeRate.toFixed(1)+'%'),
-      baseline:BASE.closeRate.y26+'% (2026)', target:BASE.closeRate.target+'%',
-      status:crSev.k, statusText:crSev.l||'NO DEALS LOGGED YET',
-      pct:k.closeRate===null?0:k.closeRate/BASE.closeRate.target*100,
-      na:k.closeRate===null?'Log deals opened alongside deals won and this fills in. 2025 was '+BASE.closeRate.y25+'%, 2026 to date '+BASE.closeRate.y26+'%.':null})+
-    kcard({name:'Organic lead conversion',who:'AM1 · motion 05 · weekly',
-      value:(k.organicConv===null?'—':k.organicConv.toFixed(1)+'%'),
-      baseline:BASE.organicConv.y26+'% (2026)', target:BASE.organicConv.target+'%',
-      status:ocSev.k, statusText:ocSev.l||'NO LEADS LOGGED YET',
-      pct:k.organicConv===null?0:k.organicConv/BASE.organicConv.target*100,
-      na:k.organicConv===null?'Log leads worked on motion 05 and this fills in. 2025 was '+BASE.organicConv.y25+'%, 2026 to date '+BASE.organicConv.y26+'%.':null});
+  /* ── 1 · the scrub ── */
+  (function(){
+    var found=outVal(1,'pipe')||0, live=outVal(1,'live'), a1=act(1), mm=motionById(1);
+    var sv=wk? sev(a1.rev, mm.rev*frac) : {k:'idle',l:'NOT STARTED'};
+    cards.push({cls:sv.k, name:'Every open ADAP deal classified and owned',
+      motion:'Motion 01 · target '+money(mm.rev),
+      rows:[
+        kmRow('Pipeline found', found?money(found):'—', found?'real pipeline, from the scrub':'enter it on the milestone'),
+        kmRow('Live deals kept', live!==null?live:'—', 'after dead pipeline was closed'),
+        kmRow('Closed so far', money(a1.rev), a1.won?a1.won+' deals':'nothing logged yet','v-actual'),
+        kmRow('Conversion of that pipeline', found? (a1.rev/found*100).toFixed(1)+'%' : '—', found?'of '+money(found)+' found':'—')
+      ], status:sv.l});
+  })();
 
-  /* ── Tier 3 ── */
-  var acctSev=k.acctPerWeek===null?{k:'idle',l:''}:pctSev(k.acctPerWeek,BASE.weeklyAccounts.target,true);
-  var h3='';
-  var accSt=starterState(3);
-  var base=addressableBase();
-  var fc=msRevenueExpected(2);
-  h3+=kcard({name:'Named accounts worked',
-    who:'AM1 + SS · weekly'+(base? ' · '+base.toLocaleString('en-US')+' unique accounts':'')+
-        (fc? ' · '+money(fc)+' forecast':''), startedBy:accSt,
-    value:(k.acctPerWeek===null?'—':Math.round(k.acctPerWeek)+' /wk'),
-    baseline:'—', target:BASE.weeklyAccounts.target+' /wk',
-    status:acctSev.k, statusText:acctSev.l,
-    pct:k.acctPerWeek===null?0:k.acctPerWeek/BASE.weeklyAccounts.target*100,
-    na:k.acctPerWeek===null?'Optional. Enter a count on the weekly log if you want this tracked.':null});
-  HABITS.forEach(function(hb){
-    var r=habitRate(hb.id);
-    var sv=r===null?{k:'idle',l:'NO WEEKS LOGGED'}:pctSev(r,100,true);
-    var link=null;
-    if(hb.id===4) link=starterState(4);
-    h3+=kcard({name:hb.name,who:hb.hint, startedBy:link,
-      value:(r===null?'—':Math.round(r)+'%'),
-      baseline:'—', target:'100%',
-      status:sv.k, statusText:(r===null?'NO WEEKS LOGGED':Math.round(r/100*state.entries.length)+' of '+state.entries.length+' weeks kept'),
-      pct:r===null?0:r});
-  });
-  el('kT3').innerHTML=h3;
+  /* ── 2 · the ELA + ADMP base ── */
+  (function(){
+    var base=addressableBase(), fc=outVal(2,'rev')||0, a2=act(2), mm=motionById(2);
+    var sv=wk? sev(a2.rev, mm.rev*frac) : {k:'idle',l:'NOT STARTED'};
+    cards.push({cls:sv.k, name:'ELA and ADMP no-ADAP lists built',
+      motion:'Motion 02 · target '+money(mm.rev)+' · shared with AM outreach',
+      rows:[
+        kmRow('Accounts in the base', base!==null?base.toLocaleString('en-US'):'—','unique, after overlap'),
+        kmRow('Revenue forecast', fc?money(fc):'—','a forecast, not pipeline'),
+        kmRow('Worked so far', acctWeeks? Math.round(acctTot/acctWeeks)+' /wk' : '—', base&&acctWeeks? Math.round(acctTot/base*100)+'% of the base touched':'log a weekly count','v-actual'),
+        kmRow('Closed so far', money(a2.rev), fc? Math.round(a2.rev/fc*100)+'% of the forecast':'—','v-actual')
+      ], status:sv.l});
+  })();
+
+  /* ── 3 · AM outbound ── */
+  (function(){
+    var dom=outVal(3,'domains'), cp=outVal(3,'convpc'), fc=outVal(3,'rev')||0, a2=act(2), mm=motionById(2);
+    var implied=(dom&&cp)? Math.round(dom*cp/100) : null;
+    var sv=wk? sev(a2.rev, mm.rev*frac) : {k:'idle',l:'NOT STARTED'};
+    cards.push({cls:sv.k, name:'Outreach by Account Managers',
+      motion:'Motion 02 · shared with the ELA and ADMP base',
+      rows:[
+        kmRow('Domains without ADAP', dom!==null?dom.toLocaleString('en-US'):'—','Jan 25 – Jun 26'),
+        kmRow('Historic conversion', cp!==null?cp+'%':'—', implied!==null? 'implies about '+implied+' wins':'enter it on the milestone'),
+        kmRow('Revenue forecast', fc?money(fc):'—', (implied&&fc)? money(Math.round(fc/implied))+' a deal implied':'a forecast, not pipeline'),
+        kmRow('Closed so far', money(a2.rev), fc? Math.round(a2.rev/fc*100)+'% of the forecast':'—','v-actual')
+      ], status:sv.l});
+  })();
+
+  /* ── 4 · support routing ── */
+  (function(){
+    var leads=outVal(4,'leads'), cv=outVal(4,'conv'), fc=outVal(4,'rev')||0, a4=act(4), mm=motionById(4);
+    var rate=(leads&&cv)? (cv/leads*100) : null;
+    var kept=habitRate(4);
+    var sv=wk? sev(a4.rev, mm.rev*frac) : {k:'idle',l:'NOT STARTED'};
+    cards.push({cls:sv.k, name:'Support routing live',
+      motion:'Motion 04 · target '+money(mm.rev),
+      rows:[
+        kmRow('Leads sent Oct–Dec 2025', leads!==null?leads:'—','last year, the baseline'),
+        kmRow('Converted', cv!==null?cv:'—', rate!==null? rate.toFixed(1)+'% conversion':'enter it on the milestone'),
+        kmRow('Revenue forecast', fc?money(fc):'—','a forecast, not pipeline'),
+        kmRow('Closed so far', money(a4.rev), kept!==null? Math.round(kept)+'% of weeks flags were routed':'no weeks logged','v-actual')
+      ], status:sv.l});
+  })();
+
+  el('kBoard').innerHTML=cards.map(function(c){
+    return '<div class="kmcard '+c.cls+'">'+
+      '<div class="kmhead"><div><b>'+hl(c.name)+'</b><span>'+c.motion+'</span></div>'+
+      '<span class="kmst '+c.cls+'">'+c.status+'</span></div>'+
+      '<div class="kmgrid">'+c.rows.join('')+'</div></div>';
+  }).join('');
 }
 
 function renderAll(){ var bl=el('build'); if(bl) bl.textContent='BUILD '+BUILD; renderAcct(); renderTop(); renderKpis(); renderDash(); renderKpiBoard(); renderMs(); renderLog(); renderMotions(); renderChart(); }
