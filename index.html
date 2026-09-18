@@ -130,6 +130,7 @@ main{min-width:0;overflow-x:clip}
 
 /* ── milestone rows ── */
 .fbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+#msHero:not(:empty){display:block}
 .fchip{font-family:var(--mono);font-size:10px;font-weight:600;padding:5px 11px;border-radius:6px;cursor:pointer;
   border:1px solid var(--line2);background:transparent;color:var(--mut);transition:.14s;user-select:none;white-space:nowrap}
 .fchip:hover{color:var(--ink);border-color:var(--mut)}
@@ -314,7 +315,8 @@ svg.chart{width:100%;height:auto;display:block}
 /* ───── milestones hero ───── */
 .mshero{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-bottom:18px;
   background:linear-gradient(135deg,rgba(217,164,65,.11),rgba(217,164,65,.02) 60%,transparent),var(--card2);
-  border:1px solid rgba(217,164,65,.3);border-radius:10px;padding:14px 18px;margin:0}
+  border:1px solid rgba(217,164,65,.3);border-radius:10px;padding:14px 18px;
+  width:fit-content;max-width:min(100%,720px);margin:0 0 24px}
 .mshero.covered{background:linear-gradient(135deg,rgba(111,169,122,.12),rgba(111,169,122,.02) 60%,transparent),var(--card2);
   border-color:rgba(111,169,122,.35)}
 .mh-k{font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;color:var(--mut2);text-transform:uppercase;white-space:nowrap}
@@ -324,7 +326,7 @@ svg.chart{width:100%;height:auto;display:block}
 
 
 
-.mh-bar{display:flex;height:4px;border-radius:3px;overflow:hidden;background:var(--line);margin:0 0 9px;min-width:160px}
+.mh-bar{display:flex;height:4px;border-radius:3px;overflow:hidden;background:var(--line);margin:0 0 10px;width:100%}
 .mh-bar i{display:block;height:4px}
 .mh-bar i.backed{background:var(--gold)}
 .mh-bar i.fore{background:rgba(217,164,65,.38)}
@@ -338,7 +340,7 @@ svg.chart{width:100%;height:auto;display:block}
 
 
 .mh-fig{flex:none;padding-right:22px;border-right:1px solid var(--line2)}
-.mh-body{flex:1;min-width:210px}
+.mh-body{min-width:220px;flex:0 1 auto}
 @media(max-width:620px){.mshero{gap:14px}.mh-fig{border-right:0;padding-right:0}.mh-lg{gap:14px}}
 
 /* ───── milestone outputs ───── */
@@ -1484,7 +1486,7 @@ function renderAcct(){
   }
 }
 
-var BUILD='2026-09-18 09:18 UTC';
+var BUILD='2026-09-18 09:22 UTC';
 function kmRow(label,value,sub,cls){
   return '<div class="kmr"><div class="kml">'+label+'</div>'+
     '<div class="kmv '+(cls||'')+'">'+value+'</div>'+
