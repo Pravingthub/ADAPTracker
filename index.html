@@ -318,7 +318,7 @@ svg.chart{width:100%;height:auto;display:block}
 /* ───── milestones hero ───── */
 .hero2{border:1px solid var(--line2);border-radius:12px;background:var(--card2);
   margin:26px 0 0;overflow:hidden}
-.h2-top{display:grid;grid-template-columns:1fr minmax(260px,340px);gap:0;
+.h2-top{display:block;
   background:linear-gradient(135deg,rgba(217,164,65,.10),rgba(217,164,65,.02) 60%,transparent),var(--card2);
   border-bottom:1px solid var(--line)}
 .h2-commit{padding:20px 24px}
@@ -327,15 +327,14 @@ svg.chart{width:100%;height:auto;display:block}
 .h2-sub{font-family:var(--mono);font-size:11px;color:var(--mut);margin-top:9px}
 .h2-warn{display:inline-block;margin-left:10px;font-size:9px;letter-spacing:.08em;text-transform:uppercase;
   color:var(--warn);border:1px solid rgba(201,160,87,.4);border-radius:5px;padding:2px 7px}
-.h2-input{padding:20px 24px;border-left:1px solid var(--line);display:flex;flex-direction:column;justify-content:center}
-.h2-input label{font-family:var(--mono);font-size:8.5px;letter-spacing:.11em;color:var(--mut2);text-transform:uppercase;margin-bottom:8px;display:block}
-.h2-input input{background:var(--bg);border:1px solid var(--line2);border-radius:8px;padding:11px 13px;
-  font-family:var(--mono);font-size:19px;font-weight:600;letter-spacing:-.03em;color:var(--ink);width:100%}
-.h2-input input:focus{outline:none;border-color:var(--gold)}
-.h2-input input::placeholder{font-size:12px;font-weight:400;color:#3C424C;letter-spacing:0}
-.h2-hint{font-size:11px;color:var(--mut2);margin-top:9px;line-height:1.4}
-.h2-hint .ok{color:var(--pos);font-weight:600}
-.h2-hint .bad{color:var(--neg);font-weight:600}
+
+
+
+
+
+
+
+
 
 .h2-split{display:grid;grid-template-columns:1fr 1fr}
 .h2-block{padding:18px 24px}
@@ -357,8 +356,7 @@ svg.chart{width:100%;height:auto;display:block}
 .h2-foot{padding:13px 24px;border-top:1px solid var(--line);background:var(--card);
   font-size:11.5px;color:var(--mut)}
 .h2-foot b{color:var(--ink);font-family:var(--mono);font-size:12.5px;font-weight:600;letter-spacing:-.02em}
-@media(max-width:860px){.h2-top{grid-template-columns:1fr}.h2-input{border-left:0;border-top:1px solid var(--line)}
-  .h2-split{grid-template-columns:1fr}.h2-block + .h2-block{border-left:0;border-top:1px solid var(--line)}}
+@media(max-width:860px){.h2-split{grid-template-columns:1fr}.h2-block + .h2-block{border-left:0;border-top:1px solid var(--line)}}
 
 /* ───── milestone outputs ───── */
 .outs{margin-top:13px;padding-top:12px;border-top:1px solid var(--line)}
@@ -537,7 +535,7 @@ svg.chart{width:100%;height:auto;display:block}
       <section class="pane" id="p-kpi">
         <div class="card">
           <h2>What each milestone promised, and what is landing</h2>
-          <p class="sub">One card per milestone. The promise comes from the numbers you entered there; the actual comes from the weekly log.</p>
+          <p class="sub">Four buckets. The promise comes from the numbers you entered on the milestones; the actual comes from the weekly log.</p>
           <div id="kBoard"></div>
         </div>
       </section>
@@ -1098,7 +1096,6 @@ function renderMsHero(){
   var box=el('msHero'); if(!box) return;
   var r=msRevenueSplit();
   var idTotal=r.total+r.run;
-  var exp=(state.expected===null||state.expected===undefined)?'':state.expected;
   function seg(v,tot){ return tot? Math.max(0,Math.min(100,v/tot*100)) : 0; }
 
   box.innerHTML=
@@ -1110,17 +1107,6 @@ function renderMsHero(){
         '<div class="h2-n">'+money(TARGET)+'</div>'+
         '<div class="h2-sub">'+money(TARGET_REC)+' deficit &nbsp;+&nbsp; '+money(TARGET_RUN)+' Sep–Dec'+
           (outVal(5,'target')?'':'<span class="h2-warn">Sep–Dec not set · placeholder</span>')+'</div>'+
-      '</div>'+
-      '<div class="h2-input">'+
-        '<label for="expTotal">Total revenue expected · everything in</label>'+
-        '<input type="number" min="0" id="expTotal" value="'+exp+'" placeholder="enter the figure you are working to">'+
-        '<div class="h2-hint">'+
-          (exp!==''
-            ? (exp>=TARGET
-                ? '<span class="ok">'+money(exp-TARGET)+' above the '+money(TARGET)+' commitment</span>'
-                : '<span class="bad">'+money(TARGET-exp)+' short of the '+money(TARGET)+' commitment</span>')
-            : 'Tracking runs against this once you set it')+
-        '</div>'+
       '</div>'+
     '</div>'+
 
@@ -1154,13 +1140,6 @@ function renderMsHero(){
       ' &nbsp;·&nbsp; '+Math.round(idTotal/TARGET*100)+'% has a named source</div>'+
   '</div>';
 
-  var inp=el('expTotal');
-  if(inp) inp.onchange=function(){
-    state.expected = inp.value===''? null : num(inp.value);
-    if(window.ADAP_DB && DB.mode==='cloud' && DB.saveExpected) DB.saveExpected(state.expected);
-    else save();
-    renderAll();
-  };
 }
 
 function renderMs(){
@@ -1598,7 +1577,7 @@ function renderAcct(){
   }
 }
 
-var BUILD='2026-09-18 10:30 UTC';
+var BUILD='2026-09-18 10:53 UTC';
 function kmRow(label,value,sub,cls){
   return '<div class="kmr"><div class="kml">'+label+'</div>'+
     '<div class="kmv '+(cls||'')+'">'+value+'</div>'+
@@ -1607,9 +1586,7 @@ function kmRow(label,value,sub,cls){
 function renderKpiBoard(){
   var wk=state.entries.length?weekNo():0;
   var frac=wk?Math.min(1,wk/WEEKS):0;
-  var t=totals();
 
-  /* actual revenue and pipeline per motion, from the weekly log */
   function act(mid){
     var r=0,p=0,w=0,o=0;
     state.entries.forEach(function(e){ var c=e.m[mid]; if(!c) return;
@@ -1621,18 +1598,24 @@ function renderKpiBoard(){
 
   var cards=[];
 
-  /* ── 1 · the scrub ── */
+  /* ── 1 · old leads + Q4 same quarter ── */
   (function(){
-    var found=outVal(1,'pipe')||0, live=outVal(1,'live'), fc1=outVal(1,'rev')||0, a1=act(1), mm=motionById(1);
-    var sv=wk? sev(a1.rev, mm.rev*frac) : {k:'idle',l:'NOT STARTED'};
-    cards.push({cls:sv.k, name:'Every open ADAP deal classified and owned',
-      motion:'Motion 01 · target '+money(mm.rev),
+    var scrub=outVal(1,'rev')||0, found=outVal(1,'pipe')||0;
+    var carried=outVal(5,'other')||0, sameq=outVal(5,'sameq')||0;
+    var old=scrub+carried, exp=old+sameq;
+    var a=act(1), b=act(6), got=a.rev+b.rev, won=a.won+b.won;
+    var sv=wk? sev(got, exp*frac) : {k:'idle',l:'NOT STARTED'};
+    cards.push({cls:sv.k, name:'ADAP revenue from old leads and Q4 same quarter',
+      motion:'Motions 01 + 06 · deals already in play and new business that lands inside the quarter',
       rows:[
-        kmRow('Pipeline found', found?money(found):'—', found?'real pipeline, from the scrub':'enter it on the milestone'),
-        kmRow('Live deals kept', live!==null?live:'—', 'after dead pipeline was closed'),
-        kmRow('Revenue expected', fc1?money(fc1):'—', (found&&fc1)? Math.round(fc1/found*100)+'% of the pipeline found':'backed by real pipeline'),
-        kmRow('Closed so far', money(a1.rev), a1.won?a1.won+' deals':'nothing logged yet','v-actual'),
-        kmRow('Conversion of that pipeline', found? (a1.rev/found*100).toFixed(1)+'%' : '—', fc1? Math.round(a1.rev/fc1*100)+'% of what we expected':'—')
+        kmRow('From old leads', old?money(old):'—',
+          (scrub||carried)? money(scrub)+' scrubbed + '+money(carried)+' carried' : 'enter it on the milestones'),
+        kmRow('Q4 same-quarter conversion', sameq?money(sameq):'—',
+          sameq&&exp? Math.round(sameq/exp*100)+'% of this bucket':'opens and closes inside Sep–Dec'),
+        kmRow('Expected in total', exp?money(exp):'—',
+          found? money(found)+' of pipeline behind the old leads':'old leads plus same quarter'),
+        kmRow('Closed so far', money(got), won?won+' deals':'nothing logged yet','v-actual'),
+        kmRow('Against expected', exp? Math.round(got/exp*100)+'%':'—', exp?'of '+money(exp):'—')
       ], status:sv.l});
   })();
 
@@ -1640,22 +1623,23 @@ function renderKpiBoard(){
   (function(){
     var base=addressableBase(), fc=outVal(2,'rev')||0, a2=act(2), mm=motionById(2);
     var sv=wk? sev(a2.rev, mm.rev*frac) : {k:'idle',l:'NOT STARTED'};
-    cards.push({cls:sv.k, name:'ELA and ADMP no-ADAP lists built',
+    cards.push({cls:sv.k, name:'ELA and ADMP customers without ADAP',
       motion:'Motion 02 · target '+money(mm.rev)+' · shared with AM outreach',
       rows:[
         kmRow('Accounts in the base', base!==null?base.toLocaleString('en-US'):'—','unique, after overlap'),
         kmRow('Revenue forecast', fc?money(fc):'—','a forecast, not pipeline'),
-        kmRow('Worked so far', acctWeeks? Math.round(acctTot/acctWeeks)+' /wk' : '—', base&&acctWeeks? Math.round(acctTot/base*100)+'% of the base touched':'log a weekly count','v-actual'),
+        kmRow('Worked so far', acctWeeks? Math.round(acctTot/acctWeeks)+' /wk' : '—',
+          base&&acctWeeks? Math.round(acctTot/base*100)+'% of the base touched':'log a weekly count','v-actual'),
         kmRow('Closed so far', money(a2.rev), fc? Math.round(a2.rev/fc*100)+'% of the forecast':'—','v-actual')
       ], status:sv.l});
   })();
 
-  /* ── 3 · AM outbound ── */
+  /* ── 3 · AM outreach ── */
   (function(){
     var dom=outVal(3,'domains'), cp=outVal(3,'convpc'), fc=outVal(3,'rev')||0, a2=act(2), mm=motionById(2);
     var implied=(dom&&cp)? Math.round(dom*cp/100) : null;
     var sv=wk? sev(a2.rev, mm.rev*frac) : {k:'idle',l:'NOT STARTED'};
-    cards.push({cls:sv.k, name:'Outreach by Account Managers',
+    cards.push({cls:sv.k, name:'Account Managers outreach',
       motion:'Motion 02 · shared with the ELA and ADMP base',
       rows:[
         kmRow('Domains without ADAP', dom!==null?dom.toLocaleString('en-US'):'—','Jan 25 – Jun 26'),
@@ -1665,33 +1649,19 @@ function renderKpiBoard(){
       ], status:sv.l});
   })();
 
-  /* ── 4 · support routing ── */
+  /* ── 4 · support ── */
   (function(){
     var leads=outVal(4,'leads'), cv=outVal(4,'conv'), fc=outVal(4,'rev')||0, a4=act(4), mm=motionById(4);
     var rate=(leads&&cv)? (cv/leads*100) : null;
     var kept=habitRate(4);
     var sv=wk? sev(a4.rev, mm.rev*frac) : {k:'idle',l:'NOT STARTED'};
-    cards.push({cls:sv.k, name:'Support routing live',
+    cards.push({cls:sv.k, name:'From the Support Team',
       motion:'Motion 04 · target '+money(mm.rev),
       rows:[
         kmRow('Leads sent Oct–Dec 2025', leads!==null?leads:'—','last year, the baseline'),
         kmRow('Converted', cv!==null?cv:'—', rate!==null? rate.toFixed(1)+'% conversion':'enter it on the milestone'),
         kmRow('Revenue forecast', fc?money(fc):'—','a forecast, not pipeline'),
         kmRow('Closed so far', money(a4.rev), kept!==null? Math.round(kept)+'% of weeks flags were routed':'no weeks logged','v-actual')
-      ], status:sv.l});
-  })();
-
-  /* ── 5 · run rate ── */
-  (function(){
-    var pipe=outVal(5,'pipe'), fc=outVal(5,'rev')||0, a6=act(6), mm=motionById(6);
-    var sv=wk? sev(a6.rev, mm.rev*frac) : {k:'idle',l:'NOT STARTED'};
-    cards.push({cls:sv.k, name:'Run rate · Sep to Dec',
-      motion:'Motion 06 · target '+money(mm.rev)+' · business as usual',
-      rows:[
-        kmRow('Pipeline for the quarter', pipe!==null?money(pipe):'—', pipe?'carried into Sep':'enter it on the milestone'),
-        kmRow('Revenue expected', fc?money(fc):'—', (pipe&&fc)? Math.round(fc/pipe*100)+'% of that pipeline':'the quarter commitment'),
-        kmRow('Closed so far', money(a6.rev), a6.won?a6.won+' deals':'nothing logged yet','v-actual'),
-        kmRow('Against the quarter', fc? Math.round(a6.rev/fc*100)+'%':'—', fc?'of '+money(fc)+' expected':'—')
       ], status:sv.l});
   })();
 
