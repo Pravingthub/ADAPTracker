@@ -570,29 +570,41 @@ var STARTS={
 };
 /* Milestones that produce numbers. These feed the KPI board directly. */
 var OUTPUTS={
-  1:{title:'What the scrub found', fields:[
+  1:{title:'What the scrub found', motion:1, fields:[
     {k:'tasks',l:'ADAP tasks scrubbed',t:'n'},
     {k:'live', l:'Live deals kept',   t:'n'},
     {k:'dead', l:'Dead deals closed', t:'n'},
-    {k:'pipe', l:'Pipeline found',    t:'$', feeds:'Adds to pipeline built and coverage'}
+    {k:'pipe', l:'Pipeline found',    t:'$', pipeline:true, motion:1}
   ]},
-  2:{title:'The addressable base', fields:[
+  2:{title:'The addressable base', motion:2, fields:[
     {k:'ela', l:'ELA customers without ADAP',  t:'n'},
-    {k:'admp',l:'ADMP customers without ADAP', t:'n', feeds:'Sets the denominator for named accounts worked'}
+    {k:'admp',l:'ADMP customers without ADAP', t:'n', feeds:'Sets the denominator for named accounts worked'},
+    {k:'pipe',l:'Pipeline expected from this base', t:'$', pipeline:true, motion:2}
   ]},
-  6:{title:'What the review found', fields:[
+  6:{title:'What the review found', motion:3, fields:[
     {k:'rev',   l:'Lost deals reviewed', t:'n'},
     {k:'reopen',l:'Reopened',            t:'n'},
-    {k:'val',   l:'Value reopened',      t:'$', feeds:'Counts toward motion 03 pipeline'}
+    {k:'val',   l:'Value reopened',      t:'$', pipeline:true, motion:3}
   ]}
 };
+function motionById(id){ var f=null; MOTIONS.forEach(function(m){ if(m.id===id) f=m; }); return f; }
+/* every output flagged as pipeline, summed, so coverage reflects what we have identified */
+function msPipeline(){
+  var total=0, parts=[];
+  Object.keys(OUTPUTS).forEach(function(ord){
+    OUTPUTS[ord].fields.forEach(function(f){
+      if(!f.pipeline) return;
+      var v=outVal(Number(ord),f.k);
+      if(v){ total+=v; parts.push({label:f.l,value:v,motion:f.motion}); }
+    });
+  });
+  return {total:total, parts:parts};
+}
 function outFor(ord){ return OUTPUTS[ord]||null; }
 function outVal(ord,key){
   var m=msByOrd(ord);
   return (m && m.out && m.out[key]!==undefined && m.out[key]!=='') ? Number(m.out[key]) : null;
 }
-function scrubPipeline(){ return outVal(1,'pipe')||0; }
-function reopenPipeline(){ return outVal(6,'val')||0; }
 function addressableBase(){
   var a=outVal(2,'ela'), b=outVal(2,'admp');
   if(a===null && b===null) return null;
@@ -726,7 +738,7 @@ function kpis(){
     });
   });
   var n=state.entries.length;
-  var extraPipe=scrubPipeline()+reopenPipeline();
+  var extraPipe=msPipeline().total;
   pipe+=extraPipe;
   return {
     rev:rev, pipe:pipe, extraPipe:extraPipe, won:won, opened:opened,
@@ -1027,7 +1039,16 @@ function renderMs(){
           o.fields.map(function(f){
             return '<div class="outf"><label>'+f.l+'</label>'+
               '<input type="number" min="0" data-out="'+i+'" data-k="'+f.k+'" value="'+(mv[f.k]!==undefined&&mv[f.k]!==null?mv[f.k]:'')+'" placeholder="'+(f.t==='$'?'$':'0')+'">'+
-              (f.feeds?'<span class="feeds">'+f.feeds+'</span>':'')+'</div>';
+              (function(){
+                if(f.feeds) return '<span class="feeds">'+f.feeds+'</span>';
+                if(!f.pipeline) return '';
+                var mm=motionById(f.motion);
+                if(!mm) return '<span class="feeds">Adds to pipeline built and coverage</span>';
+                var got=outVal(m.ord||i+1,f.k)||0;
+                var pc=Math.round(got/mm.pipe*100);
+                return '<span class="feeds">Motion 0'+mm.id+' needs '+money(mm.pipe)+
+                  (got? ' · this covers '+pc+'%' : '')+'</span>';
+              })()+'</div>';
           }).join('')+'</div></div>';
       })()+
     '</div>';
@@ -1331,7 +1352,7 @@ function renderAcct(){
   }
 }
 
-var BUILD='2026-09-18 07:18 UTC';
+var BUILD='2026-09-18 07:32 UTC';
 function kcard(o){
   /* o: {name, who, value, baseline, target, status, pct, na} */
   var st=o.status||'idle';
@@ -1384,7 +1405,8 @@ function renderKpiBoard(){
   var ocSev=k.organicConv===null?{k:'idle',l:''}:pctSev(k.organicConv,BASE.organicConv.target,true);
 
   el('kT2').innerHTML=
-    kcard({name:'Qualified pipeline created',who:'SS + AM1 · weekly'+(k.extraPipe?' · incl. '+money(k.extraPipe)+' from milestone outputs':''),
+    kcard({name:'Qualified pipeline created',
+      who:'SS + AM1 · weekly'+(k.extraPipe? ' · incl. '+money(k.extraPipe)+' identified in milestones':''),
       value:(pipeWeek===null?'—':money(Math.round(pipeWeek))+' /wk'),
       baseline:'—', target:money(Math.round(PIPE_TARGET/WEEKS))+' /wk',
       status:pipeSev.k, statusText:pipeSev.l,
