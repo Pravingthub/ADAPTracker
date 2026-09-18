@@ -306,6 +306,16 @@ svg.chart{width:100%;height:auto;display:block}
   font-family:var(--mono);font-size:11.5px;font-weight:600;padding:11px 19px;border-radius:7px;
   transition:transform .3s cubic-bezier(.2,.8,.2,1);z-index:99}
 .toast.on{transform:translateX(-50%) translateY(0)}
+/* ───── milestone outputs ───── */
+.outs{margin-top:13px;padding-top:12px;border-top:1px solid var(--line)}
+.outh{font-family:var(--mono);font-size:9px;letter-spacing:.13em;color:var(--mut);text-transform:uppercase;margin-bottom:11px}
+.outh span{text-transform:none;letter-spacing:.02em;color:var(--mut2);margin-left:10px;font-size:9.5px}
+.outg{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:11px}
+.outf label{font-family:var(--mono);font-size:8.5px;letter-spacing:.09em;color:var(--mut2);margin-bottom:5px}
+.outf input{padding:7px 9px;font-size:12.5px}
+.outf .feeds{display:block;font-family:var(--sans);font-size:10px;color:var(--gold);margin-top:5px;line-height:1.4;letter-spacing:0}
+@media(max-width:600px){.outg{grid-template-columns:1fr 1fr}}
+
 /* ───── milestone ⇄ KPI link ───── */
 .starts{margin-top:10px;font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--mut2);
   border-left:2px solid var(--line2);padding:2px 0 2px 10px;line-height:1.5}
@@ -558,6 +568,37 @@ var STARTS={
   4:{kind:'acct',  id:0, label:'Named accounts worked'},
   5:{kind:'habit', id:4, label:'Support flags routed'}
 };
+/* Milestones that produce numbers. These feed the KPI board directly. */
+var OUTPUTS={
+  1:{title:'What the scrub found', fields:[
+    {k:'tasks',l:'ADAP tasks scrubbed',t:'n'},
+    {k:'live', l:'Live deals kept',   t:'n'},
+    {k:'dead', l:'Dead deals closed', t:'n'},
+    {k:'pipe', l:'Pipeline found',    t:'$', feeds:'Adds to pipeline built and coverage'}
+  ]},
+  2:{title:'The addressable base', fields:[
+    {k:'ela', l:'ELA customers without ADAP',  t:'n'},
+    {k:'admp',l:'ADMP customers without ADAP', t:'n', feeds:'Sets the denominator for named accounts worked'}
+  ]},
+  6:{title:'What the review found', fields:[
+    {k:'rev',   l:'Lost deals reviewed', t:'n'},
+    {k:'reopen',l:'Reopened',            t:'n'},
+    {k:'val',   l:'Value reopened',      t:'$', feeds:'Counts toward motion 03 pipeline'}
+  ]}
+};
+function outFor(ord){ return OUTPUTS[ord]||null; }
+function outVal(ord,key){
+  var m=msByOrd(ord);
+  return (m && m.out && m.out[key]!==undefined && m.out[key]!=='') ? Number(m.out[key]) : null;
+}
+function scrubPipeline(){ return outVal(1,'pipe')||0; }
+function reopenPipeline(){ return outVal(6,'val')||0; }
+function addressableBase(){
+  var a=outVal(2,'ela'), b=outVal(2,'admp');
+  if(a===null && b===null) return null;
+  return (a||0)+(b||0);
+}
+
 function starterFor(ord){ return STARTS[ord]||null; }
 function msByOrd(ord){
   var f=null;
@@ -597,6 +638,7 @@ function apply(v){
     if(m.status===undefined) m.status=m.done?'done':'todo';
     if(m.findings===undefined) m.findings=m.note||'';
     if(m.progress===undefined) m.progress='';
+    if(m.out===undefined || m.out===null) m.out={};
     m.done=(m.status==='done');
     if(m.due && !okDate(m.due)) m.due='';
   });
@@ -684,8 +726,10 @@ function kpis(){
     });
   });
   var n=state.entries.length;
+  var extraPipe=scrubPipeline()+reopenPipeline();
+  pipe+=extraPipe;
   return {
-    rev:rev, pipe:pipe, won:won, opened:opened,
+    rev:rev, pipe:pipe, extraPipe:extraPipe, won:won, opened:opened,
     dealSize: won? rev/won : null,
     closeRate: opened? won/opened*100 : null,
     organicConv: oLeads? oWon/oLeads*100 : null,
@@ -973,7 +1017,20 @@ function renderMs(){
           '<input type="date" data-due="'+i+'" min="2020-01-01" max="2100-12-31" value="'+(m.due||'')+'"></div>'+
         '<label>Findings</label><textarea data-f="'+i+'" rows="1" class="'+(m.findings?'filled':'')+'" placeholder="what the DRI found once they dug in">'+esc(m.findings||'')+'</textarea>'+
         '<label>Progress</label><textarea data-pr="'+i+'" rows="1" class="'+(m.progress?'filled':'')+'" placeholder="where it stands now, and what happens next">'+esc(m.progress||'')+'</textarea>'+
-      '</div></div>';
+      '</div>'+
+      (function(){
+        var o=outFor(m.ord||i+1);
+        if(!o) return '';
+        var mv=m.out||{};
+        return '<div class="outs"><div class="outh">'+o.title+
+          '<span>numbers here feed the KPI board</span></div><div class="outg">'+
+          o.fields.map(function(f){
+            return '<div class="outf"><label>'+f.l+'</label>'+
+              '<input type="number" min="0" data-out="'+i+'" data-k="'+f.k+'" value="'+(mv[f.k]!==undefined&&mv[f.k]!==null?mv[f.k]:'')+'" placeholder="'+(f.t==='$'?'$':'0')+'">'+
+              (f.feeds?'<span class="feeds">'+f.feeds+'</span>':'')+'</div>';
+          }).join('')+'</div></div>';
+      })()+
+    '</div>';
   });
   el('msList').innerHTML=h||'<div class="empty">Nothing matches that filter.</div>';
 
@@ -997,6 +1054,15 @@ function renderMs(){
   [].forEach.call(q.querySelectorAll('[data-f]'),function(x){
     autoGrow(x); x.addEventListener('input',function(){ autoGrow(x); });
     x.onchange=function(){ var i=+x.dataset.f; state.ms[i].findings=x.value; saveMs(i); x.classList.toggle('filled',!!x.value); renderDri(); }; });
+  [].forEach.call(q.querySelectorAll('[data-out]'),function(x){
+    x.onchange=function(){
+      var i=+x.dataset.out;
+      state.ms[i].out=state.ms[i].out||{};
+      var v=x.value===''?'':num(x.value);
+      state.ms[i].out[x.dataset.k]=v;
+      saveMs(i); renderAll();
+    };
+  });
   [].forEach.call(q.querySelectorAll('[data-pr]'),function(x){
     autoGrow(x); x.addEventListener('input',function(){ autoGrow(x); });
     x.onchange=function(){ var j=+x.dataset.pr; state.ms[j].progress=x.value; saveMs(j); x.classList.toggle('filled',!!x.value); renderDri(); }; });
@@ -1219,6 +1285,7 @@ el('fileIn').onchange=function(ev){
     if(m.status===undefined) m.status=m.done?'done':'todo';
     if(m.findings===undefined) m.findings=m.note||'';
     if(m.progress===undefined) m.progress='';
+    if(m.out===undefined || m.out===null) m.out={};
     m.done=(m.status==='done');
     if(m.due && !okDate(m.due)) m.due='';
   });
@@ -1264,7 +1331,7 @@ function renderAcct(){
   }
 }
 
-var BUILD='2026-09-18 06:51 UTC';
+var BUILD='2026-09-18 07:18 UTC';
 function kcard(o){
   /* o: {name, who, value, baseline, target, status, pct, na} */
   var st=o.status||'idle';
@@ -1317,7 +1384,7 @@ function renderKpiBoard(){
   var ocSev=k.organicConv===null?{k:'idle',l:''}:pctSev(k.organicConv,BASE.organicConv.target,true);
 
   el('kT2').innerHTML=
-    kcard({name:'Qualified pipeline created',who:'SS + AM1 · weekly',
+    kcard({name:'Qualified pipeline created',who:'SS + AM1 · weekly'+(k.extraPipe?' · incl. '+money(k.extraPipe)+' from milestone outputs':''),
       value:(pipeWeek===null?'—':money(Math.round(pipeWeek))+' /wk'),
       baseline:'—', target:money(Math.round(PIPE_TARGET/WEEKS))+' /wk',
       status:pipeSev.k, statusText:pipeSev.l,
@@ -1351,7 +1418,9 @@ function renderKpiBoard(){
   var acctSev=k.acctPerWeek===null?{k:'idle',l:''}:pctSev(k.acctPerWeek,BASE.weeklyAccounts.target,true);
   var h3='';
   var accSt=starterState(4);
-  h3+=kcard({name:'Named accounts worked',who:'AM1 + SS · weekly', startedBy:accSt,
+  var base=addressableBase();
+  h3+=kcard({name:'Named accounts worked',
+    who:'AM1 + SS · weekly'+(base? ' · '+base.toLocaleString('en-US')+' in the base':''), startedBy:accSt,
     value:(k.acctPerWeek===null?'—':Math.round(k.acctPerWeek)+' /wk'),
     baseline:'—', target:BASE.weeklyAccounts.target+' /wk',
     status:acctSev.k, statusText:acctSev.l,
