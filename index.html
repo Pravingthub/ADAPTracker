@@ -281,6 +281,9 @@ label{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.12em;c
 .pane{display:none} .pane.on{display:block}
 
 /* ── log ── */
+.runsep{font-family:var(--mono);font-size:9px;letter-spacing:.13em;color:var(--mut2);text-transform:uppercase;
+  margin:20px 0 6px;padding-top:16px;border-top:1px solid var(--line)}
+.entryrow.isrun .nm b{color:var(--teal)}
 .entryrow{display:grid;grid-template-columns:1.4fr 1fr 1fr .7fr .7fr;gap:10px;align-items:end;padding:12px 0;border-bottom:1px solid var(--line)}
 .entryrow .nm{font-size:13px}
 .entryrow .nm b{display:block;color:var(--ink);font-weight:600}
@@ -316,7 +319,7 @@ svg.chart{width:100%;height:auto;display:block}
 .mshero{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-bottom:18px;
   background:linear-gradient(135deg,rgba(217,164,65,.11),rgba(217,164,65,.02) 60%,transparent),var(--card2);
   border:1px solid rgba(217,164,65,.3);border-radius:10px;padding:14px 18px;
-  width:fit-content;max-width:min(100%,720px);margin:0 0 24px}
+  width:fit-content;max-width:min(100%,900px);margin:0 0 24px}
 .mshero.covered{background:linear-gradient(135deg,rgba(111,169,122,.12),rgba(111,169,122,.02) 60%,transparent),var(--card2);
   border-color:rgba(111,169,122,.35)}
 .mh-k{font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;color:var(--mut2);text-transform:uppercase;white-space:nowrap}
@@ -340,6 +343,9 @@ svg.chart{width:100%;height:auto;display:block}
 
 
 .mh-fig{flex:none;padding-right:22px;border-right:1px solid var(--line2)}
+.mh-fig.run{padding-right:0;padding-left:22px;border-right:0;border-left:1px solid var(--line2)}
+.mh-fig.run .mh-n{color:var(--teal)}
+.mh-sub{font-family:var(--mono);font-size:10px;color:var(--mut2);margin-top:7px;white-space:nowrap}
 .mh-body{min-width:220px;flex:0 1 auto}
 @media(max-width:620px){.mshero{gap:14px}.mh-fig{border-right:0;padding-right:0}.mh-lg{gap:14px}}
 
@@ -588,8 +594,11 @@ var MOTIONS=[
  {id:2,name:'ELA + ADMP with no ADAP', owner:'AM + SS',         rev:95000, pipe:296875},
  {id:3,name:'Deals above $10,000',     owner:'SS + AM',         rev:58000, pipe:181250},
  {id:4,name:'Support-sourced',         owner:'Support → owner', rev:25000, pipe:78125},
- {id:5,name:'Organic leads we do get', owner:'AM',              rev:35170, pipe:109906}
+ {id:5,name:'Organic leads we do get', owner:'AM',              rev:35170, pipe:109906},
+ {id:6,name:'Run rate · Sep–Dec',       owner:'SS + AM',         rev:200000, pipe:625000, run:true}
 ];
+var RECOVERY=MOTIONS.filter(function(m){return !m.run;});
+var RUNLINE=MOTIONS.filter(function(m){return m.run;});
 var HABITS=[
  {id:1,name:'Deal room held',hint:'Every live deal looked at'},
  {id:2,name:'Every live deal has a next step and a date',hint:'Nothing sitting without an action'},
@@ -607,14 +616,19 @@ var BASE={
   weeklyAccounts:{target:30}
 };
 
-var TARGET=MOTIONS.reduce(function(a,m){return a+m.rev;},0);
-var PIPE_TARGET=MOTIONS.reduce(function(a,m){return a+m.pipe;},0);
+var TARGET_REC=RECOVERY.reduce(function(a,m){return a+m.rev;},0);     /* 265,170 backlog */
+var TARGET_RUN=RUNLINE.reduce(function(a,m){return a+m.rev;},0);      /* 200,000 Sep–Dec */
+var TARGET=TARGET_REC+TARGET_RUN;                                      /* 465,170 to close */
+var PIPE_REC=RECOVERY.reduce(function(a,m){return a+m.pipe;},0);
+var PIPE_RUN=RUNLINE.reduce(function(a,m){return a+m.pipe;},0);
+var PIPE_TARGET=PIPE_REC+PIPE_RUN;
 
 var DEFAULT_MS=[
  ['Days 1–10 · Set up','Every open ADAP deal classified and owned, dead pipeline closed'],
  ['Days 1–10 · Set up','ELA and ADMP no-ADAP lists built, ranked and split by owner'],
  ['Days 1–10 · Set up','Outreach by Account Managers'],
- ['Days 1–10 · Set up','Support routing live — first flag reaches an owner and becomes an opportunity']
+ ['Days 1–10 · Set up','Support routing live — first flag reaches an owner and becomes an opportunity'],
+ ['Days 1–10 · Set up','Run rate · Sep to Dec business as usual']
 ];
 /* Three milestones are the ignition switch for a KPI. The rest are setup only. */
 var STARTS={
@@ -641,6 +655,10 @@ var OUTPUTS={
     {k:'convpc', l:'Historic outbound conversion %',                t:'n', feeds:'Used to sanity-check the forecast'},
     {k:'rev',    l:'Revenue expected from this base',               t:'$', revenue:true, motion:2}
   ]},
+  5:{title:'The Sep–Dec run rate', motion:6, fields:[
+    {k:'pipe',l:'Pipeline for the quarter', t:'$', pipeline:true, motion:6},
+    {k:'rev', l:'Revenue expected',         t:'$', revenue:true, backed:true, motion:6}
+  ]},
   4:{title:'What the support channel produced last year', motion:4, fields:[
     {k:'leads', l:'Leads sent Oct–Dec 2025',        t:'n'},
     {k:'conv',  l:'Converted from those',           t:'n'},
@@ -650,18 +668,17 @@ var OUTPUTS={
 function motionById(id){ var f=null; MOTIONS.forEach(function(m){ if(m.id===id) f=m; }); return f; }
 /* every output flagged as pipeline, summed, so coverage reflects what we have identified */
 function msRevenueSplit(){
-  var backed=0, forecast=0, parts=[];
+  var backed=0, forecast=0, run=0;
   Object.keys(OUTPUTS).forEach(function(ord){
     OUTPUTS[ord].fields.forEach(function(f){
       if(!f.revenue) return;
       var v=outVal(Number(ord),f.k)||0;
       if(!v) return;
+      if(f.motion===6){ run+=v; return; }          /* run rate is its own stream */
       if(f.backed) backed+=v; else forecast+=v;
-      var mm=msByOrd(Number(ord));
-      parts.push({name:mm?mm.text:'', value:v, backed:!!f.backed});
     });
   });
-  return {backed:backed, forecast:forecast, total:backed+forecast, parts:parts};
+  return {backed:backed, forecast:forecast, total:backed+forecast, run:run};
 }
 function msRevenueExpected(motionId){
   var total=0;
@@ -811,15 +828,17 @@ function toast(m){ var t=el('toast'); t.textContent=m; t.classList.add('on'); se
 function initials(s){ return (s||'?').trim().split(/\s+/).map(function(w){return w[0];}).join('').slice(0,2).toUpperCase(); }
 
 function totals(){
-  var r={},p={},R=0,P=0;
+  var r={},p={},R=0,P=0,Rrec=0,Rrun=0,Prec=0,Prun=0;
   MOTIONS.forEach(function(m){ r[m.id]=0; p[m.id]=0; });
   state.entries.forEach(function(e){
     MOTIONS.forEach(function(m){
       var c=e.m[m.id]; if(!c) return;
       r[m.id]+=(c.rev||0); p[m.id]+=(c.pipe||0); R+=(c.rev||0); P+=(c.pipe||0);
+      if(m.run){ Rrun+=(c.rev||0); Prun+=(c.pipe||0); }
+      else      { Rrec+=(c.rev||0); Prec+=(c.pipe||0); }
     });
   });
-  return {r:r,p:p,R:R,P:P};
+  return {r:r,p:p,R:R,P:P,Rrec:Rrec,Rrun:Rrun,Prec:Prec,Prun:Prun};
 }
 function kpis(){
   var won=0,opened=0,rev=0,pipe=0,acct=0,acctWeeks=0;
@@ -911,16 +930,22 @@ function renderKpis(){
 
   var rows='';
   rows += '<div class="kpi hero'+(moving?' moving':'')+'">'+
-    '<div class="k">Recovered</div>'+
+    '<div class="k">Closed · recovery + run rate</div>'+
     '<div class="v'+(moving?'':' money')+'">'+money(t.R)+'</div>'+
     '<div class="trk"><i class="'+(moving?'good':'money')+'" style="width:'+Math.max(0,Math.min(100,t.R/TARGET*100))+'%"></i></div>'+
-    '<div class="d">'+(t.R>0?(t.R/TARGET*100).toFixed(0)+'% of '+money(TARGET)+' banked':'of '+money(TARGET))+'</div>'+
+    '<div class="d">'+(t.R>0?(t.R/TARGET*100).toFixed(0)+'% of '+money(TARGET):'of '+money(TARGET))+
+      ' &nbsp;·&nbsp; '+money(t.Rrec)+' recovery + '+money(t.Rrun)+' run rate</div>'+
     heroDelta+'</div>';
 
-  rows += kpi('Still to find',money(need),
-    !n ? money(Math.round(TARGET/WEEKS))+' a week over '+WEEKS+' weeks'
-       : money(Math.round(need/wl))+' a week for '+wl+' more',
-    IC.gap,'',false,0,'',null).replace('<div class="kpi">','<div class="kpi quiet">');
+  var needRec=Math.max(0,TARGET_REC-t.Rrec), needRun=Math.max(0,TARGET_RUN-t.Rrun);
+  var svRec=wk? sev(t.Rrec,TARGET_REC*Math.min(1,wk/WEEKS)) : {k:'',l:''};
+  var svRun=wk? sev(t.Rrun,TARGET_RUN*Math.min(1,wk/WEEKS)) : {k:'',l:''};
+  rows += kpi('Recovery · backlog',money(t.Rrec),
+    money(needRec)+' left of '+money(TARGET_REC),
+    IC.gap,'',false,t.Rrec/TARGET_REC*100,svRec.k, wk?[svRec.k,svRec.l]:null);
+  rows += kpi('Run rate · Sep–Dec',money(t.Rrun),
+    money(needRun)+' left of '+money(TARGET_RUN),
+    IC.gap,'',false,t.Rrun/TARGET_RUN*100,svRun.k, wk?[svRun.k,svRun.l]:null);
 
   rows += kpi('Pipeline built',money(t.P),
     t.P>0 ? (t.P/PIPE_TARGET*100).toFixed(0)+'% of '+money(PIPE_TARGET) : 'target '+money(PIPE_TARGET),
@@ -931,7 +956,7 @@ function renderKpis(){
     IC.gap,'t',false,Math.min(100,cov/3*100),svC.k,(wk&&t.P>0)?[svC.k,svC.l]:null);
 
   rows += kpi('Milestones',done+' / '+state.ms.length,
-    done===state.ms.length?'all seven landed':(done>0?'landed so far':'seven to land'),
+    done===state.ms.length?'all landed':(done>0?'landed so far':state.ms.length+' to land'),
     IC.flag,'',false,done/state.ms.length*100,'good',msSv);
 
   el('kpis').innerHTML=rows;
@@ -954,7 +979,8 @@ function renderDash(){
   if(!nx) nx=CPS[CPS.length-1];
   var gapCP=Math.max(0,nx.amt-t.R);
   el('topDetail').innerHTML = !wk
-    ? 'Pace <b>'+money(Math.round(TARGET/WEEKS))+'</b> a week &nbsp;·&nbsp; week 4 checkpoint <b>'+money(CPS[0].amt)+'</b>'
+    ? 'Pace <b>'+money(Math.round(TARGET/WEEKS))+'</b> a week &nbsp;·&nbsp; '+
+      money(Math.round(TARGET_REC/WEEKS))+' recovery + '+money(Math.round(TARGET_RUN/WEEKS))+' run rate'
     : 'Needed by now <b>'+money(exp)+'</b> &nbsp;·&nbsp; this week <b>'+money(Math.round(left/wl))+
       '</b> &nbsp;·&nbsp; week '+nx.wk+' checkpoint <b>'+money(nx.amt)+'</b>'+(gapCP?' ('+money(gapCP)+' to go)':'');
 
@@ -1056,9 +1082,9 @@ function renderMsHero(){
   var box=el('msHero'); if(!box) return;
   var r=msRevenueSplit();
   if(!r.total){ box.innerHTML=''; return; }
-  var pc=Math.min(100,r.total/TARGET*100);
+  var pc=Math.min(100,r.total/TARGET_REC*100);
   var bp=r.total? r.backed/r.total*100 : 0;
-  box.innerHTML='<div class="mshero'+(r.total>=TARGET?' covered':'')+'">'+
+  box.innerHTML='<div class="mshero'+(r.total>=TARGET_REC?' covered':'')+'">'+
     '<div class="mh-fig"><div class="mh-k">Revenue identified</div>'+
       '<div class="mh-n">'+money(r.total)+'</div></div>'+
     '<div class="mh-body">'+
@@ -1069,6 +1095,9 @@ function renderMsHero(){
         '<span><i class="fore"></i><b>'+money(r.forecast)+'</b> forecast from cold bases</span>'+
       '</div>'+
     '</div>'+
+    '<div class="mh-fig run"><div class="mh-k">Run rate · Sep–Dec</div>'+
+      '<div class="mh-n">'+(r.run?money(r.run):'—')+'</div>'+
+      '<div class="mh-sub">'+(r.run? Math.round(r.run/TARGET_RUN*100)+'% of '+money(TARGET_RUN) : 'of '+money(TARGET_RUN))+'</div></div>'+
   '</div>';
 }
 
@@ -1227,7 +1256,8 @@ function renderMs(){
 function renderEntryRows(pre){
   el('entryRows').innerHTML=MOTIONS.map(function(m){
     var c=(pre&&pre.m&&pre.m[m.id])||{};
-    return '<div class="entryrow"><div class="nm"><b>0'+m.id+' · '+m.name+'</b><span>'+m.owner+' · target '+money(m.rev)+'</span></div>'+
+    return (m.run? '<div class="runsep">Business as usual · not part of the backlog</div>':'')+
+      '<div class="entryrow'+(m.run?' isrun':'')+'"><div class="nm"><b>'+(m.run?'':'0'+m.id+' · ')+m.name+'</b><span>'+m.owner+' · target '+money(m.rev)+'</span></div>'+
       '<div><label>Revenue closed</label><input type="number" min="0" class="inRev" data-m="'+m.id+'" value="'+(c.rev||'')+'" placeholder="0"></div>'+
       '<div><label>Pipeline added</label><input type="number" min="0" class="inPipe" data-m="'+m.id+'" value="'+(c.pipe||'')+'" placeholder="0"></div>'+
       '<div><label>Deals won</label><input type="number" min="0" class="inWon" data-m="'+m.id+'" value="'+(c.won||'')+'" placeholder="0"></div>'+
@@ -1486,7 +1516,7 @@ function renderAcct(){
   }
 }
 
-var BUILD='2026-09-18 09:22 UTC';
+var BUILD='2026-09-18 09:45 UTC';
 function kmRow(label,value,sub,cls){
   return '<div class="kmr"><div class="kml">'+label+'</div>'+
     '<div class="kmv '+(cls||'')+'">'+value+'</div>'+
@@ -1566,6 +1596,20 @@ function renderKpiBoard(){
         kmRow('Converted', cv!==null?cv:'—', rate!==null? rate.toFixed(1)+'% conversion':'enter it on the milestone'),
         kmRow('Revenue forecast', fc?money(fc):'—','a forecast, not pipeline'),
         kmRow('Closed so far', money(a4.rev), kept!==null? Math.round(kept)+'% of weeks flags were routed':'no weeks logged','v-actual')
+      ], status:sv.l});
+  })();
+
+  /* ── 5 · run rate ── */
+  (function(){
+    var pipe=outVal(5,'pipe'), fc=outVal(5,'rev')||0, a6=act(6), mm=motionById(6);
+    var sv=wk? sev(a6.rev, mm.rev*frac) : {k:'idle',l:'NOT STARTED'};
+    cards.push({cls:sv.k, name:'Run rate · Sep to Dec',
+      motion:'Motion 06 · target '+money(mm.rev)+' · business as usual',
+      rows:[
+        kmRow('Pipeline for the quarter', pipe!==null?money(pipe):'—', pipe?'carried into Sep':'enter it on the milestone'),
+        kmRow('Revenue expected', fc?money(fc):'—', (pipe&&fc)? Math.round(fc/pipe*100)+'% of that pipeline':'the quarter commitment'),
+        kmRow('Closed so far', money(a6.rev), a6.won?a6.won+' deals':'nothing logged yet','v-actual'),
+        kmRow('Against the quarter', fc? Math.round(a6.rev/fc*100)+'%':'—', fc?'of '+money(fc)+' expected':'—')
       ], status:sv.l});
   })();
 
