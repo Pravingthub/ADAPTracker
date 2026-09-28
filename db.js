@@ -55,7 +55,13 @@ var DB={
     }).catch(function(e){ reason=String(e.message||e); DB.mode='local'; return 'local'; });
   },
 
-  signIn:function(email){
+  /* password sign-in — no email in the loop, no rate limit, works instantly */
+  signIn:function(email,password){
+    if(!sb) return Promise.reject(new Error('Supabase not configured'));
+    return sb.auth.signInWithPassword({ email:email, password:password });
+  },
+  /* kept as a fallback only */
+  signInByLink:function(email){
     if(!sb) return Promise.reject(new Error('Supabase not configured'));
     return sb.auth.signInWithOtp({ email:email, options:{ emailRedirectTo:location.href.split('#')[0] } });
   },
