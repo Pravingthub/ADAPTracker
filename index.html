@@ -50,6 +50,9 @@ nav.menu button.on svg{color:var(--gold)}
 .acct b{display:block;letter-spacing:.11em;margin-bottom:3px;color:var(--pos)}
 .acct b.off{color:var(--warn)}
 .acct input{display:block;width:100%;margin-top:9px;font-size:11px;padding:7px 8px}
+.acct button.alt{background:transparent;border-color:var(--line);color:var(--mut2);font-size:10.5px}
+.acct button.alt:hover{color:var(--ink2)}
+.acct input[type=password]{margin-top:6px}
 .acct button{display:block;width:100%;margin-top:7px;background:var(--card);border:1px solid var(--line);
   color:var(--ink2);padding:7px 10px;border-radius:7px;font:inherit;font-size:11.5px;font-weight:500;cursor:pointer;text-align:left}
 .acct button:hover{background:var(--card2);color:var(--ink)}
@@ -1269,11 +1272,17 @@ function renderMs(){
                        : 'Not set — using '+money(577000)+' as a placeholder')+'</span>';
                 }
                 if(f.runrev){
-                  var tgt=outVal(m.ord||i+1,'target');
-                  var sq=outVal(m.ord||i+1,'sameq')||0, ot=outVal(m.ord||i+1,'other')||0, tot=sq+ot;
-                  if(!tot) return '<span class="feeds forecast">'+(tgt? 'Counts toward the '+money(tgt):'Counts toward the Sep–Dec commitment')+'</span>';
-                  return '<span class="feeds">'+Math.round((f.k==='sameq'?sq:ot)/tot*100)+'% of the '+money(tot)+' identified'+
-                    (tgt? ' · target '+money(tgt):'')+'</span>';
+                  var tgt=outVal(m.ord||i+1,'target'), v=outVal(m.ord||i+1,f.k)||0;
+                  if(f.k==='other'){
+                    var sc=outVal(1,'rev')||0;
+                    if(!v) return '<span class="feeds forecast">Deals already open · the scrub milestone counts these</span>';
+                    return '<span class="feeds forecast">Not added anywhere — the scrub already counts these deals'+
+                      (sc? ' as <b>'+money(sc)+'</b>':'')+'</span>';
+                  }
+                  if(!tgt) return '<span class="feeds forecast">Set the commitment above first</span>';
+                  if(!v)   return '<span class="feeds forecast">New business that opens and closes inside Sep–Dec</span>';
+                  return '<span class="feeds"><b>'+Math.round(v/tgt*100)+'%</b> of the '+money(tgt)+' commitment · '+
+                    money(Math.max(0,tgt-v))+' from deals already open</span>';
                 }
                 if(f.revenue){
                   if(!mm) return '<span class="feeds">A forecast, not pipeline</span>';
@@ -1564,6 +1573,9 @@ el('btnReset').onclick=function(){
   save(); renderEntryRows(null); renderAll(); toast('Reset');
 };
 
+function lastEmail(){
+  try{ return localStorage.getItem('adap-last-email')||''; }catch(e){ return ''; }
+}
 function renderAcct(){
   var box=el('acct'); if(!box) return;
   var m=DB.mode, u=DB.user();
@@ -1572,14 +1584,28 @@ function renderAcct(){
       '<button id="btnOut">SIGN OUT</button>';
     el('btnOut').onclick=function(){ DB.signOut().then(function(){ window.__adapWarned=false; }); };
   } else if(m==='signed-out'){
-    box.innerHTML='<b class="off">NOT SIGNED IN</b>Sign in to sync across devices.'+
-      '<input type="email" id="inEmail" placeholder="you@company.com">'+
-      '<button id="btnIn">EMAIL ME A LINK</button>';
-    el('btnIn').onclick=function(){
+    box.innerHTML='<b class="off">NOT SIGNED IN</b>Sign in to load your data.'+
+      '<input type="email" id="inEmail" placeholder="you@company.com" autocomplete="username" value="'+esc(lastEmail())+'">'+
+      '<input type="password" id="inPass" placeholder="password" autocomplete="current-password">'+
+      '<button id="btnIn">SIGN IN</button>'+
+      '<button id="btnLink" class="alt">EMAIL A LINK INSTEAD</button>';
+    function go(){
+      var v=(el('inEmail').value||'').trim(), pw=el('inPass').value||'';
+      if(!v){ toast('Enter your email'); return; }
+      if(!pw){ toast('Enter your password'); return; }
+      try{ localStorage.setItem('adap-last-email',v); }catch(e){}
+      el('btnIn').textContent='SIGNING IN…';
+      DB.signIn(v,pw).then(function(r){
+        if(r && r.error){ el('btnIn').textContent='SIGN IN'; toast(String(r.error.message)); }
+      }).catch(function(e){ el('btnIn').textContent='SIGN IN'; toast(String(e.message||e)); });
+    }
+    el('btnIn').onclick=go;
+    el('inPass').onkeydown=function(ev){ if(ev.key==='Enter') go(); };
+    el('btnLink').onclick=function(){
       var v=(el('inEmail').value||'').trim();
       if(!v){ toast('Enter your email'); return; }
-      DB.signIn(v).then(function(r){
-        toast(r.error? String(r.error.message) : 'Check your email for the link');
+      DB.signInByLink(v).then(function(r){
+        toast(r && r.error? String(r.error.message) : 'Link sent — check your email');
       });
     };
   } else {
@@ -1597,7 +1623,7 @@ function renderAcct(){
   }
 }
 
-var BUILD='2026-09-18 11:59 UTC';
+var BUILD='2026-09-28 20:02 UTC';
 function kmRow(label,value,sub,cls){
   return '<div class="kmr"><div class="kml">'+label+'</div>'+
     '<div class="kmv '+(cls||'')+'">'+value+'</div>'+
